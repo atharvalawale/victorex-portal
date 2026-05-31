@@ -1,0 +1,360 @@
+.offers-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #F4F5F9;
+}
+
+.offers-main {
+  flex: 1;
+  margin-left: 220px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.offers-content { padding: 24px 24px 40px; }
+
+.offers-header {
+  display: flex; align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+}
+
+.offers-title { font-size: 20px; font-weight: 700; color: #0B1F3A; margin-bottom: 3px; }
+.offers-sub   { font-size: 13px; color: #8A8FA3; }
+
+.offers-add-btn {
+  display: flex; align-items: center; gap: 7px;
+  height: 40px; padding: 0 18px;
+  background: #0B1F3A; color: #fff;
+  border: none; border-radius: 10px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.18s ease;
+  font-family: 'Outfit', sans-serif; white-space: nowrap;
+}
+
+.offers-add-btn i { color: #C9922A; font-size: 16px; }
+.offers-add-btn:hover { background: #132D52; transform: translateY(-1px); }
+
+/* Summary */
+.offers-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px; margin-bottom: 20px;
+}
+
+.offers-sum-card {
+  background: #fff; border: 0.5px solid #E2E5EE;
+  border-radius: 14px; padding: 16px;
+  display: flex; align-items: center; gap: 14px;
+  position: relative; overflow: hidden;
+}
+
+.offers-sum-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 2.5px;
+  border-radius: 14px 14px 0 0;
+}
+
+.offers-sum-card.green::before { background: #2D9D6E; }
+.offers-sum-card.blue::before  { background: #3A8FD4; }
+.offers-sum-card.red::before   { background: #D85A30; }
+.offers-sum-card.gold::before  { background: #C9922A; }
+
+.offers-sum-icon {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px; flex-shrink: 0;
+}
+
+.offers-sum-card.green .offers-sum-icon { background: rgba(45,157,110,0.1);  color: #2D9D6E; }
+.offers-sum-card.blue  .offers-sum-icon { background: rgba(58,143,212,0.1);  color: #3A8FD4; }
+.offers-sum-card.red   .offers-sum-icon { background: rgba(216,90,48,0.1);   color: #D85A30; }
+.offers-sum-card.gold  .offers-sum-icon { background: rgba(201,146,42,0.1);  color: #C9922A; }
+
+.offers-sum-val { font-size: 22px; font-weight: 800; color: #0B1F3A; line-height: 1; margin-bottom: 3px; }
+.offers-sum-lbl { font-size: 11px; color: #8A8FA3; }
+
+/* Filters */
+.offers-filters {
+  display: flex; gap: 6px;
+  margin-bottom: 20px; flex-wrap: wrap;
+}
+
+.offers-filter-btn {
+  height: 34px; padding: 0 16px;
+  border-radius: 9999px; border: 0.5px solid #E2E5EE;
+  background: #fff; font-size: 12px; font-weight: 500;
+  color: #5A5F72; cursor: pointer; transition: all 0.18s ease;
+  font-family: 'Outfit', sans-serif;
+}
+
+.offers-filter-btn:hover  { border-color: #0B1F3A; color: #0B1F3A; }
+.offers-filter-btn.active { background: #0B1F3A; color: #fff; border-color: #0B1F3A; }
+
+/* Grid */
+.offers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.offer-card {
+  background: #fff; border: 0.5px solid #E2E5EE;
+  border-radius: 14px; padding: 18px;
+  display: flex; flex-direction: column; gap: 10px;
+  transition: all 0.18s ease;
+}
+
+.offer-card:hover { box-shadow: 0 4px 16px rgba(11,31,58,0.08); transform: translateY(-1px); }
+.offer-card.expired  { opacity: 0.7; }
+.offer-card.inactive { opacity: 0.6; }
+
+.offer-card-top {
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.offer-discount-badge {
+  font-size: 22px; font-weight: 800;
+  color: #C9922A; line-height: 1;
+}
+
+.offer-status-badge {
+  font-size: 10px; font-weight: 700;
+  padding: 3px 10px; border-radius: 9999px;
+}
+
+.offer-title {
+  font-size: 14px; font-weight: 700; color: #0B1F3A; line-height: 1.3;
+}
+
+.offer-product {
+  font-size: 12px; color: #5A5F72;
+  display: flex; align-items: center; gap: 5px;
+}
+
+.offer-product i { color: #C9922A; font-size: 13px; }
+
+.offer-dates { display: flex; flex-direction: column; gap: 4px; }
+
+.offer-date-row {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: #8A8FA3;
+}
+
+.offer-date-row i { font-size: 13px; color: #B0B5C8; }
+
+.offer-notes {
+  font-size: 12px; color: #8A8FA3;
+  background: #F4F5F9; border-radius: 8px;
+  padding: 8px 10px; line-height: 1.4;
+}
+
+.offer-card-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  padding-top: 10px; border-top: 0.5px solid #F4F5F9;
+}
+
+.offer-toggle-btn {
+  display: flex; align-items: center; gap: 5px;
+  height: 30px; padding: 0 12px;
+  border-radius: 8px; border: 0.5px solid #E2E5EE;
+  background: transparent; font-size: 11px; font-weight: 600;
+  color: #5A5F72; cursor: pointer; transition: all 0.18s ease;
+  font-family: 'Outfit', sans-serif;
+}
+
+.offer-toggle-btn i { font-size: 13px; }
+.offer-toggle-btn.active:hover   { background: rgba(216,90,48,0.1);  border-color: #D85A30; color: #D85A30; }
+.offer-toggle-btn.inactive:hover { background: rgba(45,157,110,0.1); border-color: #2D9D6E; color: #2D9D6E; }
+
+.offer-actions { display: flex; gap: 6px; }
+
+.offer-action-btn {
+  width: 28px; height: 28px; border-radius: 8px;
+  border: 0.5px solid #E2E5EE; background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 13px; color: #8A8FA3;
+  transition: all 0.18s ease;
+}
+
+.offer-action-btn.edit:hover   { background: #EFF6FF; border-color: #3A8FD4; color: #3A8FD4; }
+.offer-action-btn.delete:hover { background: #FEF2EE; border-color: #D85A30; color: #D85A30; }
+
+/* Dealer chips */
+.offers-dealer-grid {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  max-height: 160px; overflow-y: auto;
+  padding: 8px; background: #F8F9FC;
+  border: 0.5px solid #E2E5EE; border-radius: 10px;
+}
+
+.offers-dealer-chip {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 9999px;
+  border: 0.5px solid #E2E5EE; background: #fff;
+  font-size: 12px; color: #5A5F72; cursor: pointer;
+  transition: all 0.18s ease; user-select: none;
+}
+
+.offers-dealer-chip i { font-size: 13px; color: #B0B5C8; }
+.offers-dealer-chip:hover { border-color: #C9922A; color: #0B1F3A; }
+
+.offers-dealer-chip.selected {
+  background: rgba(201,146,42,0.1);
+  border-color: #C9922A; color: #0B1F3A;
+}
+
+.offers-dealer-chip.selected i { color: #C9922A; }
+.offers-dealer-loc { font-size: 10px; color: #B0B5C8; }
+
+/* Loading / Empty */
+.offers-loading, .offers-empty {
+  display: flex; align-items: center; justify-content: center;
+  gap: 10px; padding: 80px; color: #8A8FA3;
+  font-size: 14px; flex-direction: column;
+}
+
+.offers-empty i { font-size: 40px; opacity: 0.2; color: #0B1F3A; }
+.offers-spinner { width: 24px; height: 24px; border: 2px solid #E2E5EE; border-top-color: #C9922A; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Modal shared */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(11,31,58,0.45); z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem; animation: fadeIn 0.18s ease;
+  overflow-y: auto;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal-card {
+  background: #fff; border-radius: 20px;
+  width: 100%; max-width: 540px;
+  box-shadow: 0 8px 32px rgba(11,31,58,0.12);
+  animation: slideUp 0.22s ease; margin: auto;
+}
+
+.modal-sm { max-width: 360px; }
+.modal-lg { max-width: 600px; }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 20px 14px; border-bottom: 0.5px solid #E2E5EE;
+}
+
+.modal-title { font-size: 16px; font-weight: 700; color: #0B1F3A; }
+
+.modal-close {
+  width: 30px; height: 30px; border-radius: 8px;
+  border: 0.5px solid #E2E5EE; background: transparent;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 16px; color: #8A8FA3;
+  transition: all 0.18s ease;
+}
+
+.modal-close:hover { background: #F4F5F9; color: #0B1F3A; }
+
+.modal-form { padding: 18px 20px 0; }
+
+.modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.modal-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+.modal-field label { font-size: 12px; font-weight: 600; color: #5A5F72; }
+
+.modal-field input,
+.modal-field select {
+  height: 40px; border: 0.5px solid #E2E5EE; border-radius: 10px;
+  padding: 0 12px; font-size: 13px; color: #0B1F3A;
+  background: #F8F9FC; transition: all 0.18s ease;
+  font-family: 'Outfit', sans-serif;
+}
+
+.modal-field input:focus,
+.modal-field select:focus {
+  outline: none; border-color: #C9922A;
+  box-shadow: 0 0 0 3px rgba(201,146,42,0.12); background: #fff;
+}
+
+.modal-field input.error,
+.modal-field select.error { border-color: #D85A30; background: #FEF2EE; }
+.modal-error { font-size: 11px; color: #D85A30; font-weight: 500; }
+
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding: 14px 20px 18px;
+  border-top: 0.5px solid #E2E5EE; margin-top: 4px;
+}
+
+.modal-cancel {
+  height: 38px; padding: 0 18px; border-radius: 10px;
+  border: 0.5px solid #E2E5EE; background: transparent;
+  font-size: 13px; font-weight: 500; color: #5A5F72;
+  cursor: pointer; transition: all 0.18s ease;
+  font-family: 'Outfit', sans-serif;
+}
+
+.modal-cancel:hover { background: #F4F5F9; }
+
+.modal-submit {
+  height: 38px; padding: 0 20px; border-radius: 10px;
+  border: none; background: #0B1F3A; color: #fff;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.18s ease;
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'Outfit', sans-serif;
+}
+
+.modal-submit i { color: #C9922A; font-size: 15px; }
+.modal-submit:hover { background: #132D52; }
+.modal-submit:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.modal-delete {
+  height: 38px; padding: 0 20px; border-radius: 10px;
+  border: none; background: #D85A30; color: #fff;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.18s ease;
+  display: flex; align-items: center; gap: 6px;
+  font-family: 'Outfit', sans-serif;
+}
+
+.modal-delete:hover { opacity: 0.9; }
+.modal-confirm-text { padding: 16px 20px; font-size: 13px; color: #5A5F72; }
+
+.btn-spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff; border-radius: 50%;
+  animation: spin 0.7s linear infinite; display: inline-block;
+}
+
+.offers-toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: #0B1F3A; color: #fff;
+  padding: 12px 20px; border-radius: 10px;
+  font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 8px 32px rgba(11,31,58,0.2);
+  z-index: 999; animation: slideUp 0.22s ease;
+}
+
+.offers-toast i { color: #C9922A; font-size: 16px; }
+
+@media (max-width: 1024px) {
+  .offers-summary { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .offers-main    { margin-left: 0; }
+  .offers-content { padding: 16px 16px 32px; }
+  .offers-grid    { grid-template-columns: 1fr; }
+  .offers-summary { grid-template-columns: repeat(2, 1fr); }
+  .modal-row      { grid-template-columns: 1fr; }
+}
