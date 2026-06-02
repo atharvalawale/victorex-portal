@@ -3,17 +3,13 @@ import './Sidebar.css';
 
 const NAV_MAIN = [
   { to: '/dashboard', icon: 'ti-layout-dashboard', label: 'Dashboard' },
-  { to: '/orders',    icon: 'ti-shopping-cart',    label: 'Orders', badge: 7 },
+  { to: '/orders',    icon: 'ti-shopping-cart',    label: 'Orders' },
   { to: '/dealers',   icon: 'ti-users',            label: 'Dealers' },
+  { to: '/pricelist', icon: 'ti-receipt',          label: 'Price List' },
   { to: '/khata',     icon: 'ti-notebook',         label: 'Khata / Ledger' },
   { to: '/cheques',   icon: 'ti-writing',          label: 'Cheques' },
   { to: '/analytics', icon: 'ti-chart-bar',        label: 'Analytics' },
   { to: '/invoices',  icon: 'ti-file-invoice',     label: 'Invoices' },
-  
-  { to: '/export',    icon: 'ti-file-spreadsheet', label: 'Export' },
-  { to: '/report',    icon: 'ti-file-analytics',   label: 'Daily Report' },
-  
-  
 ];
 
 const NAV_MORE = [

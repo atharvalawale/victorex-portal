@@ -1,0 +1,269 @@
+.pricelist-shell {
+  display: flex;
+  min-height: 100vh;
+  background: #F4F5F9;
+}
+
+.pricelist-main {
+  flex: 1;
+  margin-left: 220px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pricelist-content { padding: 24px 24px 40px; }
+
+.pricelist-header { margin-bottom: 20px; }
+.pricelist-title  { font-size: 20px; font-weight: 700; color: #0B1F3A; margin-bottom: 3px; }
+.pricelist-sub    { font-size: 13px; color: #8A8FA3; }
+
+.pricelist-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+/* Dealer list */
+.pricelist-dealers {
+  background: #fff;
+  border: 0.5px solid #E2E5EE;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.pricelist-dealers-hdr {
+  padding: 14px 16px;
+  border-bottom: 0.5px solid #E2E5EE;
+}
+
+.pricelist-dealers-title {
+  font-size: 13px; font-weight: 700; color: #0B1F3A;
+}
+
+.pricelist-search-wrap {
+  position: relative;
+  padding: 10px 12px;
+  border-bottom: 0.5px solid #F4F5F9;
+}
+
+.pricelist-search-wrap i {
+  position: absolute; left: 22px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px; color: #B0B5C8; pointer-events: none;
+}
+
+.pricelist-search {
+  width: 100%; height: 34px;
+  border: 0.5px solid #E2E5EE; border-radius: 8px;
+  padding: 0 10px 0 32px; font-size: 12px;
+  background: #F8F9FC; color: #0B1F3A;
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.18s ease;
+}
+
+.pricelist-search:focus {
+  outline: none; border-color: #C9922A;
+  box-shadow: 0 0 0 3px rgba(201,146,42,0.12);
+}
+
+.pricelist-dealer-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 14px;
+  border-bottom: 0.5px solid #F4F5F9;
+  cursor: pointer; transition: all 0.18s ease;
+}
+
+.pricelist-dealer-row:last-child { border-bottom: none; }
+.pricelist-dealer-row:hover      { background: #F4F5F9; }
+.pricelist-dealer-row.selected   { background: rgba(201,146,42,0.06); border-left: 2.5px solid #C9922A; }
+
+.pricelist-dealer-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: #0B1F3A; color: #C9922A;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+
+.pricelist-dealer-info { flex: 1; min-width: 0; }
+.pricelist-dealer-name { font-size: 12px; font-weight: 600; color: #0B1F3A; }
+.pricelist-dealer-loc  { font-size: 11px; color: #8A8FA3; }
+
+.pricelist-count-badge {
+  font-size: 10px; font-weight: 700;
+  background: rgba(201,146,42,0.12); color: #8a5a00;
+  padding: 2px 8px; border-radius: 9999px; white-space: nowrap;
+}
+
+.pricelist-count-empty {
+  font-size: 10px; color: #B0B5C8;
+}
+
+/* Form */
+.pricelist-form-wrap {
+  background: #fff;
+  border: 0.5px solid #E2E5EE;
+  border-radius: 14px;
+  overflow: hidden;
+  min-height: 400px;
+}
+
+.pricelist-empty {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; height: 400px;
+  color: #B0B5C8; font-size: 14px;
+}
+
+.pricelist-empty i { font-size: 36px; opacity: 0.3; }
+
+.pricelist-form-hdr {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 0.5px solid #E2E5EE;
+  flex-wrap: wrap; gap: 10px;
+}
+
+.pricelist-form-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: #0B1F3A; color: #C9922A;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0;
+}
+
+.pricelist-form-name { font-size: 14px; font-weight: 700; color: #0B1F3A; }
+.pricelist-form-loc  { font-size: 12px; color: #8A8FA3; }
+
+.pricelist-save-btn {
+  display: flex; align-items: center; gap: 7px;
+  height: 36px; padding: 0 18px;
+  background: #0B1F3A; color: #fff;
+  border: none; border-radius: 10px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; transition: all 0.18s ease;
+  font-family: 'Outfit', sans-serif;
+}
+
+.pricelist-save-btn i { color: #C9922A; font-size: 15px; }
+.pricelist-save-btn:hover { background: #132D52; }
+.pricelist-save-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.pricelist-note {
+  display: flex; align-items: center; gap: 8px;
+  margin: 14px 20px;
+  background: rgba(201,146,42,0.06);
+  border: 0.5px solid rgba(201,146,42,0.2);
+  border-radius: 8px; padding: 10px 12px;
+  font-size: 12px; color: #8a5a00;
+}
+
+.pricelist-note i { font-size: 15px; color: #C9922A; flex-shrink: 0; }
+
+/* Product sections */
+.pricelist-product-section {
+  padding: 16px 20px;
+  border-bottom: 0.5px solid #F4F5F9;
+}
+
+.pricelist-product-section:last-child { border-bottom: none; }
+
+.pricelist-product-title {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; font-weight: 700; color: #0B1F3A;
+  margin-bottom: 12px;
+}
+
+.pricelist-product-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+
+.pricelist-sizes-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.pricelist-size-field {
+  display: flex; flex-direction: column; gap: 5px;
+}
+
+.pricelist-size-field label {
+  font-size: 11px; font-weight: 600; color: #5A5F72;
+  text-align: center;
+}
+
+.pricelist-input-wrap {
+  position: relative;
+}
+
+.pricelist-rupee {
+  position: absolute; left: 8px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px; color: #8A8FA3; pointer-events: none;
+}
+
+.pricelist-input-wrap input {
+  width: 100%; height: 36px;
+  border: 0.5px solid #E2E5EE; border-radius: 8px;
+  padding: 0 8px 0 20px; font-size: 12px;
+  color: #0B1F3A; background: #F8F9FC;
+  font-family: 'Outfit', sans-serif;
+  transition: all 0.18s ease; text-align: right;
+}
+
+.pricelist-input-wrap input:focus {
+  outline: none; border-color: #C9922A;
+  box-shadow: 0 0 0 3px rgba(201,146,42,0.12);
+  background: #fff;
+}
+
+/* Loading */
+.pricelist-loading {
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px;
+}
+
+.pricelist-spinner {
+  width: 24px; height: 24px;
+  border: 2px solid #E2E5EE; border-top-color: #C9922A;
+  border-radius: 50%; animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-spinner {
+  width: 16px; height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff; border-radius: 50%;
+  animation: spin 0.7s linear infinite; display: inline-block;
+}
+
+.pricelist-toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: #0B1F3A; color: #fff;
+  padding: 12px 20px; border-radius: 10px;
+  font-size: 13px; font-weight: 600;
+  display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 8px 32px rgba(11,31,58,0.2);
+  z-index: 999; animation: slideUp 0.22s ease;
+}
+
+.pricelist-toast i { color: #C9922A; font-size: 16px; }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1024px) {
+  .pricelist-layout { grid-template-columns: 1fr; }
+  .pricelist-sizes-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .pricelist-main    { margin-left: 0; }
+  .pricelist-content { padding: 16px 16px 32px; }
+  .pricelist-sizes-grid { grid-template-columns: repeat(2, 1fr); }
+}

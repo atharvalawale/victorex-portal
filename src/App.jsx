@@ -12,6 +12,7 @@ import Cheques   from './pages/Cheques/Cheques';
 import Export    from './pages/Export/Export';
 import Report    from './pages/Report/Report';
 import Offers    from './pages/Offers/Offers';
+import PriceList from './pages/PriceList/PriceList';
 
 function Protected({ children }) {
   const auth = sessionStorage.getItem('vx_auth');
@@ -22,20 +23,21 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/"          element={<Login />} />
-        <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
-        <Route path="/orders"    element={<Protected><Orders /></Protected>} />
-        <Route path="/dealers"   element={<Protected><Dealers /></Protected>} />
-        <Route path="/khata"     element={<Protected><Khata /></Protected>} />
-        <Route path="/invoices"  element={<Protected><Invoices /></Protected>} />
-        <Route path="/analytics" element={<Protected><Analytics /></Protected>} />
-        <Route path="/stock"     element={<Protected><Stock /></Protected>} />
-        <Route path="/settings"  element={<Protected><Settings /></Protected>} />
-        <Route path="/cheques"   element={<Protected><Cheques /></Protected>} />
-        <Route path="/export"    element={<Protected><Export /></Protected>} />
-        <Route path="/report"    element={<Protected><Report /></Protected>} />
-        <Route path="/offers"    element={<Protected><Offers /></Protected>} />
-        <Route path="*"          element={<Navigate to="/" replace />} />
+        <Route path="/"           element={<Login />} />
+        <Route path="/dashboard"  element={<Protected><Dashboard /></Protected>} />
+        <Route path="/orders"     element={<Protected><Orders /></Protected>} />
+        <Route path="/dealers"    element={<Protected><Dealers /></Protected>} />
+        <Route path="/khata"      element={<Protected><Khata /></Protected>} />
+        <Route path="/invoices"   element={<Protected><Invoices /></Protected>} />
+        <Route path="/analytics"  element={<Protected><Analytics /></Protected>} />
+        <Route path="/stock"      element={<Protected><Stock /></Protected>} />
+        <Route path="/settings"   element={<Protected><Settings /></Protected>} />
+        <Route path="/cheques"    element={<Protected><Cheques /></Protected>} />
+        <Route path="/export"     element={<Protected><Export /></Protected>} />
+        <Route path="/report"     element={<Protected><Report /></Protected>} />
+        <Route path="/offers"     element={<Protected><Offers /></Protected>} />
+        <Route path="/pricelist"  element={<Protected><PriceList /></Protected>} />
+        <Route path="*"           element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
