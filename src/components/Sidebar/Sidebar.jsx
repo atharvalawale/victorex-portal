@@ -13,9 +13,14 @@ const NAV_MAIN = [
 ];
 
 const NAV_MORE = [
-  { to: '/stock',    icon: 'ti-package',  label: 'Stock' },
-  { to: '/offers',   icon: 'ti-tag',      label: 'Offers' },
-  { to: '/settings', icon: 'ti-settings', label: 'Settings' },
+  { to: '/suppliers', icon: 'ti-truck',            label: 'Suppliers' },
+  { to: '/purchases', icon: 'ti-shopping-bag',     label: 'Purchases' },
+  { to: '/costcalc',  icon: 'ti-calculator',       label: 'Cost Calculator' },
+  { to: '/stock',     icon: 'ti-package',          label: 'Stock' },
+  { to: '/export',    icon: 'ti-file-spreadsheet', label: 'Export' },
+  { to: '/report',    icon: 'ti-file-analytics',   label: 'Daily Report' },
+  { to: '/offers',    icon: 'ti-tag',              label: 'Offers' },
+  { to: '/settings',  icon: 'ti-settings',         label: 'Settings' },
 ];
 
 export default function Sidebar({ open, onClose }) {

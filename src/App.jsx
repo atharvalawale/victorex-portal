@@ -1,18 +1,21 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import Login     from './pages/Login/Login';
-import Dashboard from './pages/Dashboard/Dashboard';
-import Orders    from './pages/Orders/Orders';
-import Dealers   from './pages/Dealers/Dealers';
-import Khata     from './pages/Khata/Khata';
-import Invoices  from './pages/Invoices/Invoices';
-import Analytics from './pages/Analytics/Analytics';
-import Stock     from './pages/Stock/Stock';
-import Settings  from './pages/Settings/Settings';
-import Cheques   from './pages/Cheques/Cheques';
-import Export    from './pages/Export/Export';
-import Report    from './pages/Report/Report';
-import Offers    from './pages/Offers/Offers';
-import PriceList from './pages/PriceList/PriceList';
+import Login      from './pages/Login/Login';
+import Dashboard  from './pages/Dashboard/Dashboard';
+import Orders     from './pages/Orders/Orders';
+import Dealers    from './pages/Dealers/Dealers';
+import Khata      from './pages/Khata/Khata';
+import Invoices   from './pages/Invoices/Invoices';
+import Analytics  from './pages/Analytics/Analytics';
+import Stock      from './pages/Stock/Stock';
+import Settings   from './pages/Settings/Settings';
+import Cheques    from './pages/Cheques/Cheques';
+import Export     from './pages/Export/Export';
+import Report     from './pages/Report/Report';
+import Offers     from './pages/Offers/Offers';
+import PriceList  from './pages/PriceList/PriceList';
+import Suppliers  from './pages/Suppliers/Suppliers';
+import Purchases  from './pages/Purchases/Purchases';
+import CostCalc   from './pages/CostCalc/CostCalc';
 
 function Protected({ children }) {
   const auth = sessionStorage.getItem('vx_auth');
@@ -37,6 +40,9 @@ export default function App() {
         <Route path="/report"     element={<Protected><Report /></Protected>} />
         <Route path="/offers"     element={<Protected><Offers /></Protected>} />
         <Route path="/pricelist"  element={<Protected><PriceList /></Protected>} />
+        <Route path="/suppliers"  element={<Protected><Suppliers /></Protected>} />
+        <Route path="/purchases"  element={<Protected><Purchases /></Protected>} />
+        <Route path="/costcalc"   element={<Protected><CostCalc /></Protected>} />
         <Route path="*"           element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

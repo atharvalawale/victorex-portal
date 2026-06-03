@@ -1,0 +1,94 @@
+.costcalc-shell { display: flex; min-height: 100vh; background: #F4F5F9; }
+.costcalc-main  { flex: 1; margin-left: 220px; display: flex; flex-direction: column; min-width: 0; }
+.costcalc-content { padding: 24px 24px 40px; }
+
+.costcalc-header { margin-bottom: 20px; }
+.costcalc-title  { font-size: 20px; font-weight: 700; color: #0B1F3A; margin-bottom: 3px; }
+.costcalc-sub    { font-size: 13px; color: #8A8FA3; }
+
+.costcalc-layout { display: grid; grid-template-columns: 1fr 340px; gap: 16px; align-items: start; }
+
+/* Cards */
+.costcalc-card { background: #fff; border: 0.5px solid #E2E5EE; border-radius: 14px; padding: 18px; margin-bottom: 14px; }
+.costcalc-card-title { font-size: 13px; font-weight: 700; color: #0B1F3A; margin-bottom: 14px; display: flex; align-items: center; gap: 7px; }
+.costcalc-card-title i { color: #C9922A; font-size: 16px; }
+.costcalc-card-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+
+.costcalc-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.costcalc-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.costcalc-field { display: flex; flex-direction: column; gap: 5px; }
+.costcalc-field label { font-size: 11px; font-weight: 600; color: #5A5F72; }
+.costcalc-field select, .costcalc-field input { height: 38px; border: 0.5px solid #E2E5EE; border-radius: 8px; padding: 0 10px; font-size: 13px; color: #0B1F3A; background: #F8F9FC; font-family: 'Outfit', sans-serif; transition: all 0.18s ease; }
+.costcalc-field select:focus, .costcalc-field input:focus { outline: none; border-color: #C9922A; box-shadow: 0 0 0 3px rgba(201,146,42,0.12); background: #fff; }
+
+.costcalc-input-wrap { position: relative; }
+.costcalc-input-wrap input { width: 100%; padding-left: 22px; }
+.costcalc-prefix { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #8A8FA3; }
+.costcalc-suffix { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; color: #8A8FA3; }
+
+.costcalc-saved-note { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #2D9D6E; font-weight: 600; margin-top: 8px; }
+.costcalc-saved-note i { font-size: 14px; }
+
+/* Items grid */
+.costcalc-item-header { display: grid; grid-template-columns: 2.5fr 1fr 1fr 1fr 1fr 32px; gap: 8px; padding: 8px 0; font-size: 10px; font-weight: 700; color: #8A8FA3; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 0.5px solid #E2E5EE; margin-bottom: 4px; }
+.costcalc-item-row { display: grid; grid-template-columns: 2.5fr 1fr 1fr 1fr 1fr 32px; gap: 8px; padding: 6px 0; border-bottom: 0.5px solid #F4F5F9; align-items: center; }
+.costcalc-item-row:last-of-type { border-bottom: none; }
+.costcalc-item-field input, .costcalc-item-field select { width: 100%; height: 34px; border: 0.5px solid #E2E5EE; border-radius: 8px; padding: 0 8px; font-size: 12px; color: #0B1F3A; background: #F8F9FC; font-family: 'Outfit', sans-serif; transition: all 0.18s ease; }
+.costcalc-item-field input:focus, .costcalc-item-field select:focus { outline: none; border-color: #C9922A; background: #fff; }
+.costcalc-item-amount { font-size: 12px; font-weight: 700; color: #0B1F3A; text-align: right; }
+
+.costcalc-remove-btn { width: 28px; height: 28px; border-radius: 7px; border: 0.5px solid #E2E5EE; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #B0B5C8; transition: all 0.18s ease; }
+.costcalc-remove-btn:hover:not(:disabled) { background: #FEF2EE; border-color: #D85A30; color: #D85A30; }
+.costcalc-remove-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.costcalc-add-btn { display: flex; align-items: center; gap: 5px; height: 28px; padding: 0 12px; background: #0B1F3A; color: #fff; border: none; border-radius: 7px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: 'Outfit', sans-serif; }
+.costcalc-add-btn i { color: #C9922A; font-size: 13px; }
+.costcalc-add-btn:hover { background: #132D52; }
+
+.costcalc-subtotal { display: flex; justify-content: space-between; padding: 10px 0 0; border-top: 0.5px solid #E2E5EE; font-size: 13px; color: #5A5F72; margin-top: 8px; }
+.costcalc-subtotal strong { font-weight: 700; color: #0B1F3A; }
+
+.costcalc-save-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 42px; background: #0B1F3A; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.18s ease; font-family: 'Outfit', sans-serif; }
+.costcalc-save-btn i { color: #C9922A; font-size: 17px; }
+.costcalc-save-btn:hover { background: #132D52; }
+.costcalc-save-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+/* Result card */
+.costcalc-result-card { background: #0B1F3A; border-radius: 14px; padding: 20px; position: sticky; top: 80px; }
+.costcalc-result-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 4px; }
+.costcalc-result-product { font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 20px; }
+
+.costcalc-breakdown { display: flex; flex-direction: column; gap: 2px; margin-bottom: 16px; }
+.costcalc-breakdown-row { display: flex; justify-content: space-between; padding: 7px 10px; border-radius: 6px; font-size: 13px; color: rgba(255,255,255,0.6); }
+.costcalc-breakdown-row:hover { background: rgba(255,255,255,0.05); }
+.costcalc-breakdown-row.subtotal { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85); font-weight: 600; margin-top: 4px; }
+
+.costcalc-final { text-align: center; padding: 16px; background: rgba(201,146,42,0.15); border-radius: 10px; margin-bottom: 12px; }
+.costcalc-final-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.4); margin-bottom: 4px; }
+.costcalc-final-val   { font-size: 32px; font-weight: 800; color: #E8B84B; line-height: 1; margin-bottom: 4px; }
+.costcalc-final-sub   { font-size: 11px; color: rgba(255,255,255,0.4); }
+
+.costcalc-per-unit { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 16px; }
+.costcalc-per-unit-label { font-size: 12px; color: rgba(255,255,255,0.5); }
+.costcalc-per-unit-val   { font-size: 14px; font-weight: 700; color: #fff; }
+
+/* Saved formulas */
+.costcalc-saved-list  { border-top: 0.5px solid rgba(255,255,255,0.1); padding-top: 14px; }
+.costcalc-saved-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.3); margin-bottom: 8px; }
+.costcalc-saved-row   { display: flex; justify-content: space-between; align-items: center; padding: 10px 10px; border-radius: 8px; cursor: pointer; transition: all 0.18s ease; }
+.costcalc-saved-row:hover  { background: rgba(255,255,255,0.06); }
+.costcalc-saved-row.active { background: rgba(201,146,42,0.15); }
+.costcalc-saved-name  { font-size: 12px; font-weight: 600; color: #fff; }
+.costcalc-saved-size  { font-size: 11px; color: rgba(255,255,255,0.35); }
+.costcalc-saved-price { font-size: 13px; font-weight: 700; color: #E8B84B; }
+
+.btn-spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.costcalc-toast { position: fixed; bottom: 24px; right: 24px; background: #0B1F3A; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: 0 8px 32px rgba(11,31,58,0.2); z-index: 999; animation: slideUp 0.22s ease; }
+.costcalc-toast i { color: #C9922A; font-size: 16px; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 1100px) { .costcalc-layout { grid-template-columns: 1fr; } .costcalc-result-card { position: static; } }
+@media (max-width: 768px) { .costcalc-main { margin-left: 0; } .costcalc-content { padding: 16px 16px 32px; } .costcalc-row { grid-template-columns: 1fr 1fr; } .costcalc-item-header, .costcalc-item-row { grid-template-columns: 2fr 1fr 1fr 1fr 32px; } }
