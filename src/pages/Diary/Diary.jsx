@@ -29,12 +29,24 @@ export default function Diary() {
 
   async function fetchAll() {
     setLoading(true);
-    const [e, d] = await Promise.all([
-      supabase.from('diary_entries').select('*').order('date', { ascending: false }),
-      supabase.from('dealers').select('name, location').eq('status', 'active').order('name'),
-    ]);
-    setEntries(e.data || []);
-    setDealers(d.data || []);
+
+    const { data: entriesData, error: entriesError } = await supabase
+      .from('diary_entries')
+      .select('*')
+      .order('date', { ascending: false });
+
+    if (entriesError) console.error('diary_entries fetch error:', JSON.stringify(entriesError));
+
+    const { data: dealersData, error: dealersError } = await supabase
+      .from('dealers')
+      .select('name, location')
+      .eq('status', 'active')
+      .order('name');
+
+    if (dealersError) console.warn('dealers fetch error (table may not exist):', JSON.stringify(dealersError));
+
+    setEntries(entriesData || []);
+    setDealers(dealersData || []);
     setLoading(false);
   }
 
@@ -77,23 +89,31 @@ export default function Diary() {
     setSaving(true);
 
     const payload = {
-      dealer_name:    form.dealer_name,
-      location:       form.location,
+      dealer_name:    form.dealer_name.trim(),
+      location:       form.location.trim() || null,
       amount:         Number(form.amount),
       date:           form.date,
-      notes:          form.notes,
+      notes:          form.notes.trim() || null,
       payment_status: form.payment_status,
       paid_amount:    form.payment_status === 'paid'    ? Number(form.amount)
                     : form.payment_status === 'partial' ? Number(form.paid_amount)
                     : 0,
     };
 
+    // ── DEBUG: remove these three lines once working ──
+    console.log('📦 payload:', JSON.stringify(payload, null, 2));
+    // ─────────────────────────────────────────────────
+
     if (editId) {
-      const { error } = await supabase.from('diary_entries').update(payload).eq('id', editId);
+      const { data, error } = await supabase.from('diary_entries').update(payload).eq('id', editId);
+      console.log('✏️ update error:', JSON.stringify(error));
+      console.log('✏️ update data:', data);
       if (!error) { showToast('Entry updated ✓'); fetchAll(); }
       else showToast('Error updating entry');
     } else {
-      const { error } = await supabase.from('diary_entries').insert(payload);
+      const { data, error } = await supabase.from('diary_entries').insert(payload);
+      console.log('➕ insert error:', JSON.stringify(error));
+      console.log('➕ insert data:', data);
       if (!error) { showToast('Entry added ✓'); fetchAll(); }
       else showToast('Error adding entry');
     }
@@ -253,7 +273,7 @@ export default function Diary() {
                 </thead>
                 <tbody>
                   {filtered.map(entry => {
-                    const outstanding = Number(entry.amount) - Number(entry.paid_amount || 0);
+                    const entryOutstanding = Number(entry.amount) - Number(entry.paid_amount || 0);
                     return (
                       <tr key={entry.id}>
                         <td>
@@ -265,8 +285,8 @@ export default function Diary() {
                         <td style={{ color: '#2D9D6E', fontWeight: 600 }}>
                           {entry.paid_amount > 0 ? fmtAmt(entry.paid_amount) : '—'}
                         </td>
-                        <td style={{ color: outstanding > 0 ? '#D85A30' : '#2D9D6E', fontWeight: 600 }}>
-                          {outstanding > 0 ? fmtAmt(outstanding) : '✓ Clear'}
+                        <td style={{ color: entryOutstanding > 0 ? '#D85A30' : '#2D9D6E', fontWeight: 600 }}>
+                          {entryOutstanding > 0 ? fmtAmt(entryOutstanding) : '✓ Clear'}
                         </td>
                         <td>
                           <span className="diary-status" style={STATUS_STYLE[entry.payment_status]}>
