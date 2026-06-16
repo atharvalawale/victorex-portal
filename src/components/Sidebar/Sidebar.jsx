@@ -2,14 +2,16 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 
 const NAV_MAIN = [
-  { to: '/dashboard', icon: 'ti-layout-dashboard', label: 'Dashboard' },
-  { to: '/orders',    icon: 'ti-shopping-cart',    label: 'Orders' },
-  { to: '/dealers',   icon: 'ti-users',            label: 'Dealers' },
-  { to: '/pricelist', icon: 'ti-receipt',          label: 'Price List' },
-  { to: '/khata',     icon: 'ti-notebook',         label: 'Khata / Ledger' },
-  { to: '/cheques',   icon: 'ti-writing',          label: 'Cheques' },
-  { to: '/analytics', icon: 'ti-chart-bar',        label: 'Analytics' },
-  { to: '/invoices',  icon: 'ti-file-invoice',     label: 'Invoices' },
+  { to: '/dashboard',      icon: 'ti-layout-dashboard', label: 'Dashboard' },
+  { to: '/orders',         icon: 'ti-shopping-cart',    label: 'Orders' },
+  { to: '/diary',          icon: 'ti-notebook',         label: 'Diary Entry' },
+  { to: '/diarydashboard', icon: 'ti-chart-pie',        label: 'Diary Dashboard' },
+  { to: '/dealers',        icon: 'ti-users',            label: 'Dealers' },
+  { to: '/pricelist',      icon: 'ti-receipt',          label: 'Price List' },
+  { to: '/khata',          icon: 'ti-book',             label: 'Khata / Ledger' },
+  { to: '/cheques',        icon: 'ti-writing',          label: 'Cheques' },
+  { to: '/analytics',      icon: 'ti-chart-bar',        label: 'Analytics' },
+  { to: '/invoices',       icon: 'ti-file-invoice',     label: 'Invoices' },
 ];
 
 const NAV_MORE = [

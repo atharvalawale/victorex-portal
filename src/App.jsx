@@ -16,6 +16,8 @@ import PriceList  from './pages/PriceList/PriceList';
 import Suppliers  from './pages/Suppliers/Suppliers';
 import Purchases  from './pages/Purchases/Purchases';
 import CostCalc   from './pages/CostCalc/CostCalc';
+import Diary from './pages/Diary/Diary';
+import DiaryDashboard from './pages/DiaryDashboard/DiaryDashboard';
 
 function Protected({ children }) {
   const auth = sessionStorage.getItem('vx_auth');
@@ -43,6 +45,8 @@ export default function App() {
         <Route path="/suppliers"  element={<Protected><Suppliers /></Protected>} />
         <Route path="/purchases"  element={<Protected><Purchases /></Protected>} />
         <Route path="/costcalc"   element={<Protected><CostCalc /></Protected>} />
+        <Route path="/diary" element={<Protected><Diary /></Protected>} />
+        <Route path="/diarydashboard" element={<Protected><DiaryDashboard /></Protected>} />
         <Route path="*"           element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
