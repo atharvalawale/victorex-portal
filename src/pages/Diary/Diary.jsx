@@ -10,6 +10,41 @@ const EMPTY_FORM = {
   notes: '', payment_status: 'unpaid', paid_amount: '',
 };
 
+// For each dealer, compute running balance across all entries (sorted oldest→newest).
+// Returns a map: entry.id → { netDue, carryIn, carryOut }
+// netDue > 0  = still owes money
+// netDue < 0  = overpaid / advance credit
+// netDue = 0  = fully settled
+function computeRunningBalances(allEntries) {
+  // group by dealer
+  const byDealer = {};
+  for (const e of allEntries) {
+    if (!byDealer[e.dealer_name]) byDealer[e.dealer_name] = [];
+    byDealer[e.dealer_name].push(e);
+  }
+
+  const result = {};
+
+  for (const dealerEntries of Object.values(byDealer)) {
+    // oldest first for running calc
+    const sorted = [...dealerEntries].sort((a, b) => new Date(a.date) - new Date(b.date));
+    let carryOver = 0; // positive = dealer still owes us, negative = we owe them credit
+
+    for (const e of sorted) {
+      const carryIn   = carryOver;
+      const charged   = Number(e.amount);
+      const paid      = Number(e.paid_amount || 0);
+      const totalDue  = carryIn + charged;  // what they owe including carry-forward
+      const netDue    = totalDue - paid;    // positive = still owes, negative = overpaid
+      carryOver       = netDue;
+
+      result[e.id] = { netDue, carryIn, carryOut: netDue };
+    }
+  }
+
+  return result;
+}
+
 export default function Diary() {
   const [sidebarOpen, setSidebarOpen]   = useState(false);
   const [entries, setEntries]           = useState([]);
@@ -35,15 +70,13 @@ export default function Diary() {
       .select('*')
       .order('date', { ascending: false });
 
-    if (entriesError) console.error('diary_entries fetch error:', JSON.stringify(entriesError));
+    if (entriesError) console.error('diary_entries fetch error:', entriesError);
 
-    const { data: dealersData, error: dealersError } = await supabase
+    const { data: dealersData } = await supabase
       .from('dealers')
       .select('name, location')
       .eq('status', 'active')
       .order('name');
-
-    if (dealersError) console.warn('dealers fetch error (table may not exist):', JSON.stringify(dealersError));
 
     setEntries(entriesData || []);
     setDealers(dealersData || []);
@@ -55,6 +88,8 @@ export default function Diary() {
     setTimeout(() => setToast(''), 3000);
   }
 
+  const balances = computeRunningBalances(entries);
+
   const filtered = entries.filter(e => {
     const matchStatus = filterStatus === 'all' || e.payment_status === filterStatus;
     const matchSearch =
@@ -63,11 +98,11 @@ export default function Diary() {
     return matchStatus && matchSearch;
   });
 
-  const totalAmt      = filtered.reduce((s, e) => s + Number(e.amount || 0), 0);
-  const totalPaid     = filtered.filter(e => e.payment_status === 'paid').reduce((s, e) => s + Number(e.amount || 0), 0);
-  const totalUnpaid   = filtered.filter(e => e.payment_status === 'unpaid').reduce((s, e) => s + Number(e.amount || 0), 0);
-  const totalPartial  = filtered.filter(e => e.payment_status === 'partial').reduce((s, e) => s + Number(e.amount || 0) - Number(e.paid_amount || 0), 0);
-  const outstanding   = totalUnpaid + totalPartial;
+  const totalAmt     = filtered.reduce((s, e) => s + Number(e.amount || 0), 0);
+  const totalPaid    = filtered.filter(e => e.payment_status === 'paid').reduce((s, e) => s + Number(e.amount || 0), 0);
+  const totalUnpaid  = filtered.filter(e => e.payment_status === 'unpaid').reduce((s, e) => s + Number(e.amount || 0), 0);
+  const totalPartial = filtered.filter(e => e.payment_status === 'partial').reduce((s, e) => s + Number(e.amount || 0) - Number(e.paid_amount || 0), 0);
+  const outstanding  = totalUnpaid + totalPartial;
 
   function validate() {
     const e = {};
@@ -76,7 +111,6 @@ export default function Diary() {
     if (!form.date) e.date = 'Date required';
     if (form.payment_status === 'partial') {
       if (!form.paid_amount || Number(form.paid_amount) <= 0) e.paid_amount = 'Enter amount paid';
-      if (Number(form.paid_amount) >= Number(form.amount)) e.paid_amount = 'Must be less than total amount';
     }
     return e;
   }
@@ -100,20 +134,12 @@ export default function Diary() {
                     : 0,
     };
 
-    // ── DEBUG: remove these three lines once working ──
-    console.log('📦 payload:', JSON.stringify(payload, null, 2));
-    // ─────────────────────────────────────────────────
-
     if (editId) {
-      const { data, error } = await supabase.from('diary_entries').update(payload).eq('id', editId);
-      console.log('✏️ update error:', JSON.stringify(error));
-      console.log('✏️ update data:', data);
+      const { error } = await supabase.from('diary_entries').update(payload).eq('id', editId);
       if (!error) { showToast('Entry updated ✓'); fetchAll(); }
       else showToast('Error updating entry');
     } else {
-      const { data, error } = await supabase.from('diary_entries').insert(payload);
-      console.log('➕ insert error:', JSON.stringify(error));
-      console.log('➕ insert data:', data);
+      const { error } = await supabase.from('diary_entries').insert(payload);
       if (!error) { showToast('Entry added ✓'); fetchAll(); }
       else showToast('Error adding entry');
     }
@@ -156,6 +182,18 @@ export default function Diary() {
 
   const fmtAmt  = n => `₹${Number(n || 0).toLocaleString('en-IN')}`;
   const fmtDate = d => new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+
+  // In modal: show preview of carry-forward for selected dealer
+  const dealerPrevBalance = (() => {
+    if (!form.dealer_name.trim()) return 0;
+    // find latest entry for this dealer to get their carryOut
+    const dealerEntries = entries
+      .filter(e => e.dealer_name === form.dealer_name.trim() && e.id !== editId)
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
+    if (!dealerEntries.length) return 0;
+    const latest = dealerEntries[0];
+    return balances[latest.id]?.carryOut ?? 0;
+  })();
 
   const STATUS_STYLE = {
     paid:    { background: 'rgba(45,157,110,0.12)',  color: '#165c3a' },
@@ -265,7 +303,7 @@ export default function Diary() {
                     <th>Date</th>
                     <th>Amount</th>
                     <th>Paid</th>
-                    <th>Outstanding</th>
+                    <th>Net Due</th>
                     <th>Payment</th>
                     <th>Notes</th>
                     <th>Actions</th>
@@ -273,7 +311,10 @@ export default function Diary() {
                 </thead>
                 <tbody>
                   {filtered.map(entry => {
-                    const entryOutstanding = Number(entry.amount) - Number(entry.paid_amount || 0);
+                    const bal = balances[entry.id];
+                    const netDue   = bal?.netDue  ?? (Number(entry.amount) - Number(entry.paid_amount || 0));
+                    const carryIn  = bal?.carryIn ?? 0;
+
                     return (
                       <tr key={entry.id}>
                         <td>
@@ -281,12 +322,32 @@ export default function Diary() {
                           {entry.location && <div className="diary-loc">{entry.location}</div>}
                         </td>
                         <td className="diary-date">{fmtDate(entry.date)}</td>
-                        <td><strong>{fmtAmt(entry.amount)}</strong></td>
+                        <td>
+                          <strong>{fmtAmt(entry.amount)}</strong>
+                          {carryIn > 0 && (
+                            <div style={{ fontSize: '11px', color: '#D85A30', marginTop: 2 }}>
+                              +{fmtAmt(carryIn)} prev due
+                            </div>
+                          )}
+                          {carryIn < 0 && (
+                            <div style={{ fontSize: '11px', color: '#7c3aed', marginTop: 2 }}>
+                              -{fmtAmt(Math.abs(carryIn))} advance applied
+                            </div>
+                          )}
+                        </td>
                         <td style={{ color: '#2D9D6E', fontWeight: 600 }}>
                           {entry.paid_amount > 0 ? fmtAmt(entry.paid_amount) : '—'}
                         </td>
-                        <td style={{ color: entryOutstanding > 0 ? '#D85A30' : '#2D9D6E', fontWeight: 600 }}>
-                          {entryOutstanding > 0 ? fmtAmt(entryOutstanding) : '✓ Clear'}
+                        <td>
+                          {netDue > 0 ? (
+                            <span style={{ color: '#D85A30', fontWeight: 600 }}>{fmtAmt(netDue)}</span>
+                          ) : netDue < 0 ? (
+                            <span style={{ color: '#7c3aed', fontWeight: 600 }}>
+                              +{fmtAmt(Math.abs(netDue))} advance
+                            </span>
+                          ) : (
+                            <span style={{ color: '#2D9D6E', fontWeight: 600 }}>✓ Clear</span>
+                          )}
                         </td>
                         <td>
                           <span className="diary-status" style={STATUS_STYLE[entry.payment_status]}>
@@ -355,6 +416,24 @@ export default function Diary() {
                 {errors.dealer_name && <span className="modal-error">{errors.dealer_name}</span>}
               </div>
 
+              {/* Show carry-forward balance for this dealer */}
+              {form.dealer_name.trim() && dealerPrevBalance !== 0 && (
+                <div className="diary-carry-banner" style={{
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  marginBottom: 4,
+                  fontSize: 13,
+                  background: dealerPrevBalance > 0 ? 'rgba(216,90,48,0.08)' : 'rgba(124,58,237,0.08)',
+                  color: dealerPrevBalance > 0 ? '#7a2010' : '#5b21b6',
+                  border: `1px solid ${dealerPrevBalance > 0 ? 'rgba(216,90,48,0.2)' : 'rgba(124,58,237,0.2)'}`,
+                }}>
+                  {dealerPrevBalance > 0
+                    ? <><i className="ti ti-alert-circle" /> Previous balance: <strong>{fmtAmt(dealerPrevBalance)}</strong> still due from earlier orders</>
+                    : <><i className="ti ti-circle-check" /> Previous advance: <strong>{fmtAmt(Math.abs(dealerPrevBalance))}</strong> credit will be applied to this order</>
+                  }
+                </div>
+              )}
+
               <div className="modal-row">
                 <div className="modal-field">
                   <label>Location</label>
@@ -420,11 +499,18 @@ export default function Diary() {
                     className={errors.paid_amount ? 'error' : ''}
                   />
                   {errors.paid_amount && <span className="modal-error">{errors.paid_amount}</span>}
-                  {form.paid_amount && form.amount && Number(form.paid_amount) < Number(form.amount) && (
-                    <div className="diary-partial-preview">
-                      Remaining: <strong>{fmtAmt(Number(form.amount) - Number(form.paid_amount))}</strong>
-                    </div>
-                  )}
+                  {form.paid_amount && form.amount && (() => {
+                    const paid  = Number(form.paid_amount);
+                    const total = Number(form.amount);
+                    const effective = total + dealerPrevBalance; // add prev due (or subtract prev credit)
+                    if (paid > 0 && total > 0) {
+                      const net = effective - paid;
+                      if (net > 0) return <div className="diary-partial-preview">Net still due: <strong>{fmtAmt(net)}</strong></div>;
+                      if (net < 0) return <div className="diary-partial-preview" style={{ color: '#7c3aed' }}>Advance credit: <strong>{fmtAmt(Math.abs(net))}</strong> carries to next order</div>;
+                      return <div className="diary-partial-preview">Fully settled ✓</div>;
+                    }
+                    return null;
+                  })()}
                 </div>
               )}
 
