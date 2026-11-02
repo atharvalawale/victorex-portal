@@ -1,11 +1,11 @@
 import { NavLink, useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
 import './Sidebar.css';
 
 const NAV_MAIN = [
   { to: '/dashboard',      icon: 'ti-layout-dashboard', label: 'Dashboard' },
   { to: '/orders',         icon: 'ti-shopping-cart',    label: 'Orders' },
-  { to: '/diary',          icon: 'ti-notebook',         label: 'Diary Entry' },
-  { to: '/diarydashboard', icon: 'ti-chart-pie',        label: 'Diary Dashboard' },
+  { to: '/creditbalance',  icon: 'ti-credit-card',      label: 'Credit Balance' },
   { to: '/dealers',        icon: 'ti-users',            label: 'Dealers' },
   { to: '/pricelist',      icon: 'ti-receipt',          label: 'Price List' },
   { to: '/khata',          icon: 'ti-book',             label: 'Khata / Ledger' },
@@ -28,8 +28,8 @@ const NAV_MORE = [
 export default function Sidebar({ open, onClose }) {
   const navigate = useNavigate();
 
-  function handleLogout() {
-    sessionStorage.removeItem('vx_auth');
+  async function handleLogout() {
+    await supabase.auth.signOut();
     navigate('/');
   }
 

@@ -1,15 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
 import './Login.css';
-
-/* ─── Dummy credentials (replace with real auth later) ─── */
-const ADMIN_USER = 'sanjay_admin';
-const ADMIN_PASS = 'victorex@2025';
 
 export default function Login() {
   const navigate = useNavigate();
 
-  const [username, setUsername]     = useState('');
+  const [email, setEmail]           = useState('');
   const [password, setPassword]     = useState('');
   const [showPass, setShowPass]     = useState(false);
   const [loading, setLoading]       = useState(false);
@@ -19,7 +16,7 @@ export default function Login() {
   /* ── Validation ── */
   function validate() {
     const errs = {};
-    if (!username.trim()) errs.username = 'Username is required';
+    if (!email.trim()) errs.email = 'Email is required';
     if (!password.trim()) errs.password = 'Password is required';
     return errs;
   }
@@ -37,22 +34,19 @@ export default function Login() {
     setErrors({});
     setLoading(true);
 
-    /* Simulate network delay */
-    await new Promise((r) => setTimeout(r, 900));
-
-    if (username === ADMIN_USER && password === ADMIN_PASS) {
-      /* Store session (dummy — replace with JWT later) */
-      sessionStorage.setItem('vx_auth', JSON.stringify({ user: username, role: 'admin' }));
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      if (error) throw error;
       navigate('/dashboard');
-    } else {
-      setAlertMsg('Invalid username or password. Please try again.');
+    } catch {
+      setAlertMsg('Unable to sign in with those details. Please check your email and password.');
       setLoading(false);
     }
   }
 
   /* ── Field change helper ── */
   function handleChange(field, value) {
-    if (field === 'username') setUsername(value);
+    if (field === 'email') setEmail(value);
     if (field === 'password') setPassword(value);
     /* Clear error on type */
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
@@ -90,28 +84,28 @@ export default function Login() {
         {/* ── Form ── */}
         <form className="login-form" onSubmit={handleLogin} noValidate>
 
-          {/* Username */}
+          {/* Email */}
           <div className="login-field">
-            <label className="login-label" htmlFor="username">Username</label>
+            <label className="login-label" htmlFor="email">Email</label>
             <div className="login-input-wrap">
               <input
-                id="username"
-                type="text"
-                className={`login-input${errors.username ? ' has-error' : ''}`}
-                placeholder="e.g. sanjay_admin"
-                value={username}
-                onChange={(e) => handleChange('username', e.target.value)}
-                autoComplete="username"
+                id="email"
+                type="email"
+                className={`login-input${errors.email ? ' has-error' : ''}`}
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => handleChange('email', e.target.value)}
+                autoComplete="email"
                 autoFocus
               />
               <span className="login-input-icon">
                 <i className="ti ti-user" aria-hidden="true" />
               </span>
             </div>
-            {errors.username && (
+            {errors.email && (
               <div className="login-error-msg">
                 <i className="ti ti-info-circle" aria-hidden="true" />
-                {errors.username}
+                {errors.email}
               </div>
             )}
           </div>
@@ -147,13 +141,6 @@ export default function Login() {
                 {errors.password}
               </div>
             )}
-          </div>
-
-          {/* Forgot password */}
-          <div className="login-forgot-row">
-            <button type="button" className="login-forgot">
-              Forgot password?
-            </button>
           </div>
 
           {/* Submit */}

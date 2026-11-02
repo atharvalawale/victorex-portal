@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import Topbar from '../../components/Topbar/Topbar';
+import { supabase } from '../../lib/supabase';
 import './Settings.css';
-
-const DUMMY_USER = 'sanjay_admin';
-const DUMMY_PASS = 'victorex@2025';
 
 export default function Settings() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -52,7 +50,6 @@ export default function Settings() {
   function validatePass() {
     const e = {};
     if (!passForm.current)              e.current = 'Current password required';
-    else if (passForm.current !== DUMMY_PASS) e.current = 'Incorrect current password';
     if (!passForm.newPass)              e.newPass = 'New password required';
     else if (passForm.newPass.length < 8) e.newPass = 'Minimum 8 characters';
     if (!passForm.confirm)              e.confirm = 'Please confirm new password';
@@ -66,10 +63,35 @@ export default function Settings() {
     if (Object.keys(errs).length) { setPassErrors(errs); return; }
     setPassErrors({});
     setPassSaving(true);
-    await new Promise(r => setTimeout(r, 800));
-    showToast('Password changed ✓');
-    setPassForm({ current: '', newPass: '', confirm: '' });
-    setPassSaving(false);
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user?.email) {
+        setPassErrors({ current: 'Could not verify the signed-in account' });
+        return;
+      }
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: passForm.current,
+      });
+      if (signInError) {
+        setPassErrors({ current: 'Current password is incorrect' });
+        return;
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({ password: passForm.newPass });
+      if (updateError) {
+        showToast('Could not update password. Please try again.', 'error');
+        return;
+      }
+
+      showToast('Password changed ✓');
+      setPassForm({ current: '', newPass: '', confirm: '' });
+    } catch {
+      showToast('Could not update password. Please try again.', 'error');
+    } finally {
+      setPassSaving(false);
+    }
   }
 
   return (
@@ -317,7 +339,7 @@ export default function Settings() {
                   </div>
                   <div>
                     <div className="settings-card-title">Admin Account</div>
-                    <div className="settings-card-sub">Your login credentials</div>
+                    <div className="settings-card-sub">Authentication is managed by Supabase</div>
                   </div>
                 </div>
 
@@ -327,8 +349,8 @@ export default function Settings() {
                     <span className="settings-info-val">Sanjay Lawale</span>
                   </div>
                   <div className="settings-info-row">
-                    <span className="settings-info-label">Username</span>
-                    <span className="settings-info-val" style={{ fontFamily:'monospace' }}>sanjay_admin</span>
+                    <span className="settings-info-label">Sign-in</span>
+                    <span className="settings-info-val">Email and password</span>
                   </div>
                   <div className="settings-info-row">
                     <span className="settings-info-label">Role</span>
