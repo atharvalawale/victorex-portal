@@ -189,6 +189,17 @@ export default function Dashboard() {
 
         <div className="dashboard-content">
 
+          <section className="dashboard-welcome">
+            <div className="dashboard-welcome-copy">
+              <span className="dashboard-eyebrow">VICTOREX · BUSINESS OVERVIEW</span>
+              <h2>Your business, at a glance</h2>
+              <p>Orders, sales and collections — all in one place.</p>
+            </div>
+            <button className="dashboard-quick-order" onClick={() => navigate('/orders')}>
+              <i className="ti ti-plus" /> New order
+            </button>
+          </section>
+
           {/* KPI Cards */}
           <div className="kpi-grid">
             <div className="kpi-card">

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
+
 :root {
   /* Victorex: mineral teal, soft porcelain, and a restrained warm accent. */
   --navy: #16353B;
@@ -30,8 +32,9 @@
   --info: #4387A0;
   --info-bg: #EEF6F8;
 
-  --font-body: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-  --font-serif: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --font-body: "DM Sans", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --font-display: Manrope, "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --font-serif: Manrope, "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
 
   --radius-sm: 8px;
   --radius-md: 12px;
