@@ -160,10 +160,10 @@ export default function Login() {
         {/* ── Footer ── */}
         <div className="login-footer">
           <div className="login-user-pill">
-            <div className="login-avatar">SL</div>
+            <div className="login-avatar">V</div>
             <div className="login-user-info">
-              <div className="name">Sanjay Lawale</div>
-              <div className="role">Gayatri Metal Finishers, Satara</div>
+              <div className="name">Victorex Portal</div>
+              <div className="role">Business management workspace</div>
             </div>
           </div>
           <span className="login-admin-badge">Admin</span>

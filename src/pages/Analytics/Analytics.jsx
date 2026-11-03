@@ -78,7 +78,7 @@ export default function Analytics() {
     const mo  = orders.filter(o => o.date?.startsWith(key));
     const row = { month: MONTHS[d.getMonth()], total: 0 };
     PRODUCTS.forEach(p => {
-      const amt = mo.filter(o => o.product === p).reduce((s,o) => s+Number(o.amount),0);
+      const amt = mo.filter(o => o.product === p).reduce((s,o) => s+Number(o.total_amount || o.amount || 0),0);
       row[p] = amt;
       row.total += amt;
     });
@@ -88,7 +88,7 @@ export default function Analytics() {
   /* ── Product share (pie) ── */
   const productShare = PRODUCTS.map(p => ({
     name: p,
-    value: orders.reduce((s,o) => o.product === p ? s+Number(o.amount) : s, 0),
+    value: orders.reduce((s,o) => o.product === p ? s+Number(o.total_amount || o.amount || 0) : s, 0),
     color: COLORS[p],
   })).filter(p => p.value > 0);
 
@@ -99,7 +99,7 @@ export default function Analytics() {
       name:     d.name,
       location: d.location,
       orders:   orders.filter(o => o.dealer_name === d.name).length,
-      revenue:  orders.filter(o => o.dealer_name === d.name).reduce((s,o) => s+Number(o.amount),0),
+      revenue:  orders.filter(o => o.dealer_name === d.name).reduce((s,o) => s+Number(o.total_amount || o.amount || 0),0),
       paid:     payments.filter(p => p.dealer_name === d.name).reduce((s,p) => s+Number(p.amount),0),
     }))
     .map(d => ({ ...d, outstanding: d.revenue - d.paid }))
@@ -115,7 +115,7 @@ export default function Analytics() {
   });
 
   /* ── Summary KPIs ── */
-  const totalRevenue    = orders.reduce((s,o) => s+Number(o.amount),0);
+  const totalRevenue    = orders.reduce((s,o) => s+Number(o.total_amount || o.amount || 0),0);
   const totalCollected  = payments.reduce((s,p) => s+Number(p.amount),0);
   const totalOutstanding = totalRevenue - totalCollected;
   const totalOrders     = orders.length;
@@ -166,7 +166,7 @@ export default function Analytics() {
   const thisMonthOrders = orders.filter(o => o.date?.startsWith(thisMonth));
 
   const targetVsAchieved = PRODUCTS.map(p => {
-    const achieved = thisMonthOrders.filter(o => o.product === p).reduce((s,o) => s+Number(o.amount),0);
+    const achieved = thisMonthOrders.filter(o => o.product === p).reduce((s,o) => s+Number(o.total_amount || o.amount || 0),0);
     const target   = targets.find(t => t.product === p && t.month === MONTHS[now.getMonth()] && t.year === now.getFullYear())?.target_amount || 0;
     return { product: p, target: Number(target), achieved, color: COLORS[p] };
   });
@@ -186,7 +186,7 @@ export default function Analytics() {
           <div className="analytics-header">
             <div>
               <h2 className="analytics-title">Business Analytics</h2>
-              <p className="analytics-sub">Gayatri Metal Finishers · Victorex Products</p>
+              <p className="analytics-sub">Sales, collections, dealer performance and monthly goals</p>
             </div>
             <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
               <button className="analytics-target-btn" onClick={openTargetModal}>

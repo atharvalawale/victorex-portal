@@ -3,22 +3,22 @@ import { useReactToPrint } from 'react-to-print';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import Topbar from '../../components/Topbar/Topbar';
 import { supabase } from '../../lib/supabase';
+import { getBusinessInfo } from '../../lib/businessInfo';
 import './Invoices.css';
-
-const COMPANY = {
-  name:    'Gayatri Metal Finishers',
-  address: 'Satara, Maharashtra',
-  phone:   '+91 XXXXXXXXXX',
-  email:   'info@victorex.in',
-  gst:     '27XXXXX1234X1ZX',
-  brand:   'Victorex',
-};
 
 const GST_RATE = 18;
 
 function InvoiceTemplate({ order, ref: _ }) {
   if (!order) return null;
-  const subtotal  = Number(order.amount);
+  const COMPANY = getBusinessInfo();
+  const invoiceItems = order.items?.length ? order.items : [{
+    product: order.product,
+    qty: order.qty,
+    unit: order.unit || 'Box',
+    rate: order.rate,
+    amount: order.amount,
+  }];
+  const subtotal  = Number(order.total_amount || invoiceItems.reduce((sum, item) => sum + Number(item.amount || 0), 0));
   const gstAmt    = Math.round(subtotal * GST_RATE / 100);
   const total     = subtotal + gstAmt;
   const cgst      = gstAmt / 2;
@@ -47,8 +47,8 @@ function InvoiceTemplate({ order, ref: _ }) {
         <div className="inv-brand">
           <div className="inv-logo-mark">V</div>
           <div>
-            <div className="inv-brand-name">{COMPANY.brand}</div>
-            <div className="inv-brand-sub">by {COMPANY.name}</div>
+            <div className="inv-brand-name">{COMPANY.brand || 'Victorex'}</div>
+            {COMPANY.name && <div className="inv-brand-sub">by {COMPANY.name}</div>}
           </div>
         </div>
         <div className="inv-header-right">
@@ -62,11 +62,11 @@ function InvoiceTemplate({ order, ref: _ }) {
       <div className="inv-addresses">
         <div className="inv-addr-block">
           <div className="inv-addr-label">From</div>
-          <div className="inv-addr-name">{COMPANY.name}</div>
-          <div className="inv-addr-detail">{COMPANY.address}</div>
-          <div className="inv-addr-detail">Phone: {COMPANY.phone}</div>
-          <div className="inv-addr-detail">Email: {COMPANY.email}</div>
-          <div className="inv-addr-detail">GSTIN: {COMPANY.gst}</div>
+          <div className="inv-addr-name">{COMPANY.name || COMPANY.brand || 'Victorex'}</div>
+          {COMPANY.address && <div className="inv-addr-detail">{COMPANY.address}</div>}
+          {COMPANY.phone && <div className="inv-addr-detail">Phone: {COMPANY.phone}</div>}
+          {COMPANY.email && <div className="inv-addr-detail">Email: {COMPANY.email}</div>}
+          {COMPANY.gst && <div className="inv-addr-detail">GSTIN: {COMPANY.gst}</div>}
         </div>
         <div className="inv-addr-block">
           <div className="inv-addr-label">To</div>
@@ -90,18 +90,20 @@ function InvoiceTemplate({ order, ref: _ }) {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>1</td>
-            <td>{order.product}</td>
-            <td>3209</td>
-            <td>{order.qty}</td>
-            <td>Box</td>
-            <td>{fmtAmt(order.rate)}</td>
-            <td>{fmtAmt(subtotal)}</td>
-          </tr>
-          {Array.from({ length: 4 }).map((_, i) => (
+          {invoiceItems.map((item, index) => (
+            <tr key={`${item.id || item.product}-${index}`}>
+              <td>{index + 1}</td>
+              <td>{item.product}</td>
+              <td>3209</td>
+              <td>{item.qty}</td>
+              <td>{item.unit || 'Box'}</td>
+              <td>{fmtAmt(item.rate)}</td>
+              <td>{fmtAmt(item.amount)}</td>
+            </tr>
+          ))}
+          {Array.from({ length: Math.max(0, 4 - invoiceItems.length) }).map((_, i) => (
             <tr key={i} className="inv-empty-row">
-              <td>{i + 2}</td>
+              <td>{invoiceItems.length + i + 1}</td>
               <td></td><td></td><td></td><td></td><td></td><td></td>
             </tr>
           ))}
@@ -145,7 +147,7 @@ function InvoiceTemplate({ order, ref: _ }) {
         <div className="inv-sign">
           <div className="inv-sign-line" />
           <div className="inv-sign-label">Authorised Signatory</div>
-          <div className="inv-sign-name">{COMPANY.name}</div>
+          <div className="inv-sign-name">{COMPANY.name || COMPANY.brand || 'Victorex'}</div>
         </div>
       </div>
     </div>
@@ -169,7 +171,12 @@ export default function Invoices() {
       .from('orders')
       .select('*')
       .order('created_at', { ascending: false });
-    setOrders(data || []);
+    const { data: itemRows } = await supabase.from('order_items').select('*');
+    const itemsByOrder = (itemRows || []).reduce((grouped, item) => {
+      (grouped[item.order_id] ||= []).push(item);
+      return grouped;
+    }, {});
+    setOrders((data || []).map(order => ({ ...order, items: itemsByOrder[order.id] || [] })));
     setLoading(false);
   }
 
@@ -269,8 +276,9 @@ export default function Invoices() {
                 </thead>
                 <tbody>
                   {filtered.map((o) => {
-                    const gst   = Math.round(Number(o.amount) * GST_RATE / 100);
-                    const total = Number(o.amount) + gst;
+                    const orderAmount = Number(o.total_amount || o.amount || 0);
+                    const gst   = Math.round(orderAmount * GST_RATE / 100);
+                    const total = orderAmount + gst;
                     return (
                       <tr key={o.id}>
                         <td><span className="invoices-id">{o.order_number}</span></td>
@@ -278,9 +286,9 @@ export default function Invoices() {
                           <div className="invoices-dealer">{o.dealer_name}</div>
                           <div className="invoices-loc">{o.location}</div>
                         </td>
-                        <td>{o.product}</td>
-                        <td>{o.qty} boxes</td>
-                        <td>{fmtAmt(o.amount)}</td>
+                        <td>{o.items?.length > 1 ? `${o.items.length} items` : o.product}</td>
+                        <td>{o.items?.length > 1 ? '—' : `${o.qty} ${o.unit || 'boxes'}`}</td>
+                        <td>{fmtAmt(orderAmount)}</td>
                         <td>{fmtAmt(gst)}</td>
                         <td><strong>{fmtAmt(total)}</strong></td>
                         <td className="invoices-date">{fmtDate(o.date)}</td>

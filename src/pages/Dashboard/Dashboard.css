@@ -328,6 +328,34 @@
   line-height: 1.4;
 }
 
+.target-empty-state {
+  display: flex;
+  min-height: 245px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 9px;
+  padding: 20px 12px;
+  text-align: center;
+}
+
+.target-empty-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 3px;
+  place-items: center;
+  border-radius: 15px;
+  background: #FFF6E5;
+  color: #B77B12;
+  font-size: 23px;
+}
+
+.target-empty-state strong { color: var(--navy); font-size: 14px; }
+.target-empty-state span { max-width: 230px; color: var(--text-muted); font-size: 11px; line-height: 1.5; }
+.target-setup-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; background: transparent; color: #9A6915; font-size: 11px; font-weight: 700; }
+.target-setup-link:hover { color: var(--navy); }
+
 /* ── Orders table ── */
 .order-table {
   width: 100%;

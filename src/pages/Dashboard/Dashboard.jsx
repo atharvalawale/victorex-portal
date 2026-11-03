@@ -20,6 +20,12 @@ const fmtFull = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const PRODUCTS = ['WallVex Pro','Chromvex','Primvex'];
+const localDateKey = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 function TargetRing({ pct }) {
   const R = 54, C = 2 * Math.PI * R;
@@ -75,9 +81,12 @@ export default function Dashboard() {
 
   async function fetchAll() {
     setLoading(true);
-    const today     = new Date().toISOString().split('T')[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-    const thisMonth = new Date().toISOString().slice(0, 7);
+    const now = new Date();
+    const today = localDateKey(now);
+    const yesterdayDate = new Date(now);
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterday = localDateKey(yesterdayDate);
+    const thisMonth = today.slice(0, 7);
 
     const [ordersRes, dealersRes, paymentsRes, targetsRes] = await Promise.all([
       supabase.from('orders').select('*').order('created_at', { ascending: false }),
@@ -131,7 +140,6 @@ export default function Dashboard() {
     setRecentOrders(orders.slice(0, 5));
 
     /* ── Monthly sales last 6 months ── */
-    const now = new Date();
     const last6 = Array.from({ length: 6 }, (_, i) => {
       const d = new Date(now.getFullYear(), now.getMonth() - 5 + i, 1);
       return { month: MONTHS[d.getMonth()], year: d.getFullYear(), key: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` };
@@ -293,32 +301,40 @@ export default function Dashboard() {
                   <i className="ti ti-target" />Monthly Target
                 </span>
               </div>
-              <div className="target-ring-wrap">
-                <TargetRing pct={targetPct} />
-                <div className="target-ring-label">
-                  <div className="target-ring-pct">{monthTarget > 0 ? `${targetPct}%` : '—'}</div>
-                  <div className="target-ring-sub">{monthTarget > 0 ? 'achieved' : 'no target set'}</div>
-                </div>
-              </div>
-              <div className="target-product-rows">
-                {productRevenue.map((p) => (
-                  <div className="target-product-row" key={p.id}>
-                    <div className="target-dot" style={{ background:p.color }} />
-                    <span className="target-product-name">{p.name}</span>
-                    <span className="target-product-pct">
-                      {p.target > 0 ? `${Math.round((p.achieved / p.target) * 100)}%` : fmtRupee(p.achieved)}
-                    </span>
+              {monthTarget > 0 ? (
+                <>
+                  <div className="target-ring-wrap">
+                    <TargetRing pct={targetPct} />
+                    <div className="target-ring-label">
+                      <div className="target-ring-pct">{targetPct}%</div>
+                      <div className="target-ring-sub">achieved</div>
+                    </div>
                   </div>
-                ))}
-              </div>
-              {monthTarget > 0 && daysLeft > 0 && (
-                <div className="target-days-note">
-                  {daysLeft} days left · Need {fmtRupee(dailyNeeded)}/day
-                </div>
-              )}
-              {monthTarget === 0 && (
-                <div style={{ fontSize:11, color:'#B0B5C8', textAlign:'center', marginTop:8 }}>
-                  Set a monthly target in Analytics
+                  <div className="target-product-rows">
+                    {productRevenue.map((p) => (
+                      <div className="target-product-row" key={p.id}>
+                        <div className="target-dot" style={{ background:p.color }} />
+                        <span className="target-product-name">{p.name}</span>
+                        <span className="target-product-pct">
+                          {p.target > 0 ? `${Math.round((p.achieved / p.target) * 100)}%` : 'No product target'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {daysLeft > 0 && (
+                    <div className="target-days-note">
+                      {daysLeft} days left · Need {fmtRupee(dailyNeeded)}/day
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="target-empty-state">
+                  <div className="target-empty-icon"><i className="ti ti-target-arrow" /></div>
+                  <strong>No monthly target set</strong>
+                  <span>Add a target to track progress against this month’s sales.</span>
+                  <button className="target-setup-link" onClick={() => navigate('/analytics')}>
+                    Set target in Analytics <i className="ti ti-arrow-right" />
+                  </button>
                 </div>
               )}
             </div>

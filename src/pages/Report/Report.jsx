@@ -3,20 +3,18 @@ import { useReactToPrint } from 'react-to-print';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import Topbar from '../../components/Topbar/Topbar';
 import { supabase } from '../../lib/supabase';
+import { getBusinessInfo } from '../../lib/businessInfo';
 import './Report.css';
-
-const COMPANY = {
-  name:  'Gayatri Metal Finishers',
-  brand: 'Victorex',
-  address: 'Satara, Maharashtra',
-  gst: '27XXXXX1234X1ZX',
-};
 
 export default function Report() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading]         = useState(false);
   const [report, setReport]           = useState(null);
-  const [reportDate, setReportDate]   = useState(new Date().toISOString().split('T')[0]);
+  const [reportDate, setReportDate]   = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  });
+  const COMPANY = getBusinessInfo();
   const printRef = useRef();
 
   const handlePrint = useReactToPrint({
@@ -56,7 +54,7 @@ export default function Report() {
     const dealerDues = dealers
       .filter(d => d.status === 'active')
       .map(d => {
-        const totalOrdered = orders.filter(o => o.dealer_name === d.name).reduce((s,o) => s+Number(o.amount),0);
+        const totalOrdered = orders.filter(o => o.dealer_name === d.name).reduce((s,o) => s+Number(o.total_amount || o.amount || 0),0);
         const totalPaid    = payments.filter(p => p.dealer_name === d.name).reduce((s,p) => s+Number(p.amount),0);
         return { name: d.name, location: d.location, outstanding: totalOrdered - totalPaid };
       })
@@ -75,19 +73,19 @@ export default function Report() {
     const todayByProduct = products.map(p => ({
       name: p,
       orders: todayOrders.filter(o => o.product === p).length,
-      amount: todayOrders.filter(o => o.product === p).reduce((s,o) => s+Number(o.amount),0),
+      amount: todayOrders.filter(o => o.product === p).reduce((s,o) => s+Number(o.total_amount || o.amount || 0),0),
     }));
 
     const monthByProduct = products.map(p => ({
       name: p,
       orders: monthOrders.filter(o => o.product === p).length,
-      amount: monthOrders.filter(o => o.product === p).reduce((s,o) => s+Number(o.amount),0),
+      amount: monthOrders.filter(o => o.product === p).reduce((s,o) => s+Number(o.total_amount || o.amount || 0),0),
     }));
 
     setReport({
       date: reportDate,
       today: {
-        sales:    todayOrders.reduce((s,o) => s+Number(o.amount),0),
+        sales:    todayOrders.reduce((s,o) => s+Number(o.total_amount || o.amount || 0),0),
         orders:   todayOrders.length,
         pending:  todayOrders.filter(o=>o.status==='pending').length,
         delivered: todayOrders.filter(o=>o.status==='delivered').length,
@@ -97,7 +95,7 @@ export default function Report() {
         paymentList: todayPayments,
       },
       month: {
-        sales:   monthOrders.reduce((s,o) => s+Number(o.amount),0),
+        sales:   monthOrders.reduce((s,o) => s+Number(o.total_amount || o.amount || 0),0),
         orders:  monthOrders.length,
         payments: payments.filter(p=>p.date?.startsWith(thisMonth)).reduce((s,p)=>s+Number(p.amount),0),
         byProduct: monthByProduct,
@@ -183,14 +181,14 @@ export default function Report() {
                   <div className="rdoc-brand">
                     <div className="rdoc-logo">V</div>
                     <div>
-                      <div className="rdoc-brand-name">{COMPANY.brand}</div>
-                      <div className="rdoc-brand-sub">by {COMPANY.name}</div>
+                      <div className="rdoc-brand-name">{COMPANY.brand || 'Victorex'}</div>
+                      {COMPANY.name && <div className="rdoc-brand-sub">by {COMPANY.name}</div>}
                     </div>
                   </div>
                   <div className="rdoc-header-right">
                     <div className="rdoc-report-title">DAILY BUSINESS REPORT</div>
                     <div className="rdoc-report-date">{fmtDate(report.date)}</div>
-                    <div className="rdoc-report-meta">{COMPANY.address} · GST: {COMPANY.gst}</div>
+                    {(COMPANY.address || COMPANY.gst) && <div className="rdoc-report-meta">{[COMPANY.address, COMPANY.gst && `GST: ${COMPANY.gst}`].filter(Boolean).join(' · ')}</div>}
                   </div>
                 </div>
 
@@ -378,7 +376,7 @@ export default function Report() {
                 {/* Footer */}
                 <div className="rdoc-footer">
                   <div>Generated on {fmtDate(new Date().toISOString().split('T')[0])} · Victorex Management Portal</div>
-                  <div>{COMPANY.name} · {COMPANY.address}</div>
+                  <div>{[COMPANY.name, COMPANY.address].filter(Boolean).join(' · ') || (COMPANY.brand || 'Victorex')}</div>
                 </div>
 
               </div>

@@ -395,7 +395,7 @@ export default function Dealers() {
                 </div>
                 <div className="scorecard-stat">
                   <div className="scorecard-stat-val">
-                    {fmtAmt(dealerOrders.reduce((s, o) => s + Number(o.amount), 0))}
+                    {fmtAmt(dealerOrders.reduce((s, o) => s + Number(o.total_amount || o.amount || 0), 0))}
                   </div>
                   <div className="scorecard-stat-lbl">Total Value</div>
                 </div>

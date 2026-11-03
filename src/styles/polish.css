@@ -13,17 +13,36 @@
 body { background: var(--surface-page); color: var(--ink-strong); }
 button { transition: transform .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease, color .16s ease; }
 button:disabled { cursor: not-allowed; opacity: .62; transform: none !important; }
+button:focus-visible, a:focus-visible { outline: 3px solid rgba(201, 146, 42, .36); outline-offset: 2px; }
 
 [class$="-shell"] { background: var(--surface-page) !important; }
 [class$="-main"] { min-width: 0; }
 [class$="-content"] { width: 100%; padding: clamp(20px, 2.3vw, 34px) clamp(16px, 2.5vw, 38px) 48px; }
 
-[class$="-header"] {
+[class$="-header"]:not(.modal-header):not(.inv-modal-header):not(.rdoc-header):not(.inv-header) {
   align-items: center;
   margin-bottom: 24px;
 }
-[class$="-title"] { color: var(--ink-strong); font-size: clamp(21px, 2.1vw, 28px); font-weight: 740; letter-spacing: -.04em; }
-[class$="-sub"] { color: var(--ink-soft); font-size: 13px; }
+.orders-title, .dealers-title, .credit-title, .analytics-title, .cheques-title,
+.pricelist-title, .khata-title, .stock-title, .settings-title, .suppliers-title,
+.offers-title, .invoices-title, .export-title, .report-title, .costcalc-title,
+.purchases-title {
+  color: var(--ink-strong);
+  font-size: clamp(21px, 2.1vw, 28px);
+  font-weight: 740;
+  letter-spacing: -.04em;
+}
+.orders-sub, .dealers-sub, .credit-sub, .analytics-sub, .cheques-sub, .pricelist-sub,
+.khata-sub, .stock-sub, .settings-sub, .suppliers-sub, .offers-sub, .invoices-sub,
+.export-sub, .report-sub, .costcalc-sub, .purchases-sub { color: var(--ink-soft); font-size: 13px; }
+
+.sidebar-logo { padding-top: 22px; padding-bottom: 20px; }
+.sidebar-section-label { letter-spacing: .12em; }
+.sidebar-item { min-height: 43px; }
+.sidebar-item.active { color: #F3C96F; }
+.sidebar-user-inner { border: 1px solid rgba(255,255,255,.055); }
+.topbar { min-height: 68px; }
+.topbar-title { font-size: clamp(15px, 1.4vw, 18px); font-weight: 720; }
 
 button[class$="-add-btn"], button[class$="-target-btn"], button[class$="-submit"] {
   min-height: 42px;
@@ -41,15 +60,30 @@ button[class$="-add-btn"]:hover, button[class$="-target-btn"]:hover, button[clas
 }
 
 [class$="-table-wrap"], .credit-card-plain, .dash-card, .kpi-card, .analytics-kpi,
-.diary-sum-card, .offers-card, .stock-card, .dealer-card, .purchase-card, .supplier-card {
+.analytics-card, .diary-sum-card, .diarydash-card, .offers-card, .offer-card,
+.offers-sum-card, .stock-card, .dealer-card, .settings-card, .costcalc-card,
+.export-card, .supplier-card, .cheques-sum-card, .khata-sum-card {
   border-color: var(--surface-border);
   border-radius: 16px;
   box-shadow: var(--card-shadow);
 }
+[class$="-table-wrap"] { border: 1px solid var(--surface-border); }
 [class$="-table-wrap"] { overflow-x: auto; background: #fff; }
-[class$="-table"] { min-width: 680px; }
+table[class$="-table"]:not(.inv-table):not(.rdoc-table) { min-width: 680px; }
 table thead th { background: #F7F9FC; color: #718096; font-size: 10px; font-weight: 750; letter-spacing: .065em; }
+table thead tr:first-child th:first-child { border-top-left-radius: 9px; }
+table thead tr:first-child th:last-child { border-top-right-radius: 9px; }
 table tbody tr:hover td { background: #FAFBFD; }
+.orders-table td, .dealers-table td, .cheques-table td, .invoices-table td, .credit-table td { transition: background-color .16s ease; }
+
+.dealer-card, .supplier-card, .stock-card, .offer-card, .export-card, .analytics-card, .settings-card, .costcalc-card {
+  background: #fff;
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.dealer-card:hover, .supplier-card:hover, .stock-card:hover, .offer-card:hover, .export-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--card-shadow-hover);
+}
 
 input:not([type="checkbox"]):not([type="radio"]), select, textarea {
   min-height: 40px;
@@ -67,9 +101,38 @@ input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:f
   box-shadow: 0 0 0 4px rgba(201, 146, 42, .12);
 }
 
-[class$="-filters"] { gap: 12px; margin-bottom: 18px; }
+.orders-filters, .dealers-filters, .cheques-filters, .invoices-filters,
+.offers-filters, .diary-filters { gap: 12px; margin-bottom: 18px; }
 [class$="-search"] { min-height: 42px; border-radius: 11px; }
 [class$="-filter-btn"] { min-height: 36px; border-radius: 999px; font-weight: 600; }
+.orders-filter-btn.active, .dealers-filter-btn.active, .cheques-filter-btn.active, .invoices-filter-btn.active { background: #102744; border-color: #102744; box-shadow: 0 4px 10px rgba(16,39,68,.12); }
+
+.orders-actions, .dealer-actions, .cheques-actions, .offer-actions, .purchases-actions { gap: 7px; }
+.orders-action-btn, .dealer-action-btn, .cheques-action-btn, .offer-action-btn, .purchases-action-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border-color: #E4EAF0;
+  background: #fff;
+}
+.orders-action-btn:hover, .dealer-action-btn:hover, .cheques-action-btn:hover, .offer-action-btn:hover, .purchases-action-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(16,39,68,.08); }
+
+.orders-table-wrap, .dealers-grid, .analytics-card, .settings-card { box-shadow: var(--card-shadow); }
+.orders-id, .orders-pack-badge { border-radius: 7px; }
+.orders-status-select, .cheques-status-select { min-height: 30px; border-radius: 999px; font-weight: 650; }
+.status-badge, .dealer-status-badge, .offer-status-badge, .inv-status-badge, .stock-status-badge { border-radius: 999px; font-weight: 700; }
+
+.orders-loading, .dealers-loading, .cheques-loading, .invoices-loading, .credit-loading, .analytics-loading, .khata-loading, .pricelist-loading, .stock-loading, .suppliers-loading, .offers-loading, .purchases-loading {
+  min-height: 220px;
+  border: 1px solid var(--surface-border);
+  border-radius: 16px;
+  background: rgba(255,255,255,.78);
+}
+
+.orders-empty, .dealers-empty, .cheques-empty, .invoices-empty, .pricelist-empty, .offers-empty, .export-info, .report-empty {
+  border-radius: 14px;
+  color: #7B8797;
+}
 
 .modal-overlay, .inv-modal-overlay { backdrop-filter: blur(5px); background: rgba(10, 25, 44, .48); }
 .modal-card, .inv-modal-card { border: 1px solid rgba(229, 234, 240, .9); border-radius: 18px; box-shadow: 0 24px 70px rgba(9, 26, 49, .23); }
@@ -81,6 +144,23 @@ input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:f
 .dash-card:hover, .kpi-card:hover { box-shadow: var(--card-shadow-hover); }
 .product-hero-card { position: relative; overflow: hidden; border-radius: 18px; background: radial-gradient(circle at 90% 0%, rgba(232,184,75,.2), transparent 36%), linear-gradient(145deg, #15365D, #0B1F3A 70%); box-shadow: 0 12px 30px rgba(11,31,58,.13); }
 .chart-wrap { min-height: 220px; }
+.dash-section-hdr { min-height: 30px; margin-bottom: 16px; }
+.dash-section-title { font-size: 14px; letter-spacing: -.015em; }
+.kpi-card { min-height: 126px; padding: 20px; border-radius: 17px; }
+.kpi-value { font-size: clamp(22px, 2.3vw, 29px); }
+.product-hero-label { color: rgba(255,255,255,.58); }
+.product-hero-sub { color: rgba(255,255,255,.56); }
+
+.analytics-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.analytics-kpi { min-height: 82px; border-radius: 14px; }
+.analytics-card { border-radius: 16px; }
+.khata-layout, .pricelist-layout, .settings-layout { gap: 18px; }
+.khata-dealer-row, .pricelist-dealer-row { min-height: 58px; border-radius: 11px; }
+.khata-entry-row, .scorecard-order-row { border-bottom-color: #EDF1F5; }
+.costcalc-result-card { border-radius: 18px; box-shadow: 0 14px 32px rgba(16,39,68,.11); }
+.credit-table-title, .stock-table-title { font-size: 14px; }
+
+.toast, [class$="-toast"] { border: 1px solid rgba(255,255,255,.1); border-radius: 12px; box-shadow: 0 12px 30px rgba(9,26,49,.2); }
 
 .status-badge, [class$="-status-badge"] { letter-spacing: .01em; }
 
@@ -90,6 +170,9 @@ input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:f
   [class$="-table"] { min-width: 620px; }
   .dash-card, .credit-card-plain { padding: 16px; }
   .chart-wrap { min-height: 195px; }
+  .analytics-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .orders-header, .dealers-header, .cheques-header, .invoices-header, .analytics-header, .stock-header { align-items: flex-start; }
 }
 
 @media (max-width: 480px) {
@@ -97,6 +180,11 @@ input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:f
   button[class$="-add-btn"], button[class$="-target-btn"] { min-height: 40px; padding: 0 13px; font-size: 11px; }
   .modal-overlay, .inv-modal-overlay { align-items: flex-end; padding: 8px; }
   .modal-card, .inv-modal-card { max-height: 92vh; overflow-y: auto; border-radius: 18px 18px 12px 12px; }
+  .analytics-kpis, .kpi-grid { grid-template-columns: 1fr 1fr; gap: 9px; }
+  .kpi-card { min-height: 116px; padding: 15px; }
+  .kpi-value { font-size: 20px; }
+  .orders-status-filters, .dealers-status-filters { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 3px; }
+  .orders-filter-btn, .dealers-filter-btn, .cheques-filter-btn, .invoices-filter-btn { flex: 0 0 auto; }
 }
 
 @media (prefers-reduced-motion: reduce) {

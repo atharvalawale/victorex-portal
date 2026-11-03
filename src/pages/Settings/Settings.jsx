@@ -1,23 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import Topbar from '../../components/Topbar/Topbar';
 import { supabase } from '../../lib/supabase';
+import { getBusinessInfo } from '../../lib/businessInfo';
 import './Settings.css';
 
 export default function Settings() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [toast, setToast]             = useState('');
   const [toastType, setToastType]     = useState('success');
+  const [adminEmail, setAdminEmail]   = useState('');
 
   /* ── Business info ── */
-  const [bizForm, setBizForm] = useState({
-    name:    'Gayatri Metal Finishers',
-    address: 'Satara, Maharashtra',
-    phone:   '+91 XXXXXXXXXX',
-    email:   'info@victorex.in',
-    gst:     '27XXXXX1234X1ZX',
-    brand:   'Victorex',
-  });
+  const [bizForm, setBizForm] = useState(getBusinessInfo);
   const [bizSaving, setBizSaving] = useState(false);
 
   /* ── Password change ── */
@@ -29,6 +24,10 @@ export default function Settings() {
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew]         = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setAdminEmail(data.user?.email || ''));
+  }, []);
 
   function showToast(msg, type = 'success') {
     setToast(msg);
@@ -346,7 +345,7 @@ export default function Settings() {
                 <div className="settings-info-rows">
                   <div className="settings-info-row">
                     <span className="settings-info-label">Name</span>
-                    <span className="settings-info-val">Sanjay Lawale</span>
+                    <span className="settings-info-val">{adminEmail || 'Signed-in administrator'}</span>
                   </div>
                   <div className="settings-info-row">
                     <span className="settings-info-label">Sign-in</span>
