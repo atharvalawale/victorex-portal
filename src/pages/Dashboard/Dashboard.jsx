@@ -69,7 +69,7 @@ export default function Dashboard() {
   const [dues, setDues]                       = useState([]);
   const [monthlySales, setMonthlySales]       = useState([]);
   const [productRevenue, setProductRevenue]   = useState([]);
-  const [monthTarget, setMonthTarget]         = useState(500000);
+  const [monthTarget, setMonthTarget]         = useState(0);
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -95,8 +95,8 @@ export default function Dashboard() {
     const todayOrders     = orders.filter(o => o.date === today);
     const yesterdayOrders = orders.filter(o => o.date === yesterday);
 
-    setTodaySales(todayOrders.reduce((s, o) => s + Number(o.amount), 0));
-    setYesterdaySales(yesterdayOrders.reduce((s, o) => s + Number(o.amount), 0));
+    setTodaySales(todayOrders.reduce((s, o) => s + Number(o.total_amount || o.amount || 0), 0));
+    setYesterdaySales(yesterdayOrders.reduce((s, o) => s + Number(o.total_amount || o.amount || 0), 0));
     setPendingOrders(orders.filter(o => o.status === 'pending').length);
     setDueTodayOrders(orders.filter(o => o.status === 'pending' && o.date === today).length);
     setActiveDealers(dealers.filter(d => d.status === 'active').length);
@@ -110,7 +110,7 @@ export default function Dashboard() {
     const dealerDues = dealers
       .filter(d => d.status === 'active')
       .map(d => {
-        const totalOrdered = orders.filter(o => o.dealer_name === d.name).reduce((s, o) => s + Number(o.amount), 0);
+        const totalOrdered = orders.filter(o => o.dealer_name === d.name).reduce((s, o) => s + Number(o.total_amount || o.amount || 0), 0);
         const totalPaid    = payments.filter(p => p.dealer_name === d.name).reduce((s, p) => s + Number(p.amount), 0);
         return { ...d, outstanding: totalOrdered - totalPaid };
       })
@@ -143,7 +143,7 @@ export default function Dashboard() {
       PRODUCTS.forEach(p => {
         row[p.toLowerCase().replace(' ', '_')] = monthOrders
           .filter(o => o.product === p)
-          .reduce((s, o) => s + Number(o.amount), 0);
+          .reduce((s, o) => s + Number(o.total_amount || o.amount || 0), 0);
       });
       return row;
     });
@@ -152,10 +152,8 @@ export default function Dashboard() {
 
     /* ── Product revenue this month ── */
     const thisMonthOrders = orders.filter(o => o.date?.startsWith(thisMonth));
-    const totalThisMonth  = thisMonthOrders.reduce((s, o) => s + Number(o.amount), 0);
-
     const prodRevenue = PRODUCTS.map((p, i) => {
-      const achieved = thisMonthOrders.filter(o => o.product === p).reduce((s, o) => s + Number(o.amount), 0);
+      const achieved = thisMonthOrders.filter(o => o.product === p).reduce((s, o) => s + Number(o.total_amount || o.amount || 0), 0);
       const target   = targets.find(t => t.product === p)?.target_amount || 0;
       return {
         id: p.toLowerCase().replace(' ', '_'),
@@ -180,7 +178,7 @@ export default function Dashboard() {
   const daysInMonth       = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
   const daysPassed        = new Date().getDate();
   const daysLeft          = daysInMonth - daysPassed;
-  const dailyNeeded       = daysLeft > 0 ? Math.round((monthTarget - thisMonthAchieved) / daysLeft) : 0;
+  const dailyNeeded       = daysLeft > 0 ? Math.max(0, Math.round((monthTarget - thisMonthAchieved) / daysLeft)) : 0;
   const todayVsYest       = yesterdaySales > 0 ? Math.round(((todaySales - yesterdaySales) / yesterdaySales) * 100) : 0;
 
   if (loading) return (
@@ -214,9 +212,9 @@ export default function Dashboard() {
               </div>
               <div className="kpi-label">Today's Sales</div>
               <div className="kpi-value" style={{ color:'#C9922A' }}>{fmtFull(todaySales)}</div>
-              <div className={`kpi-trend ${todayVsYest >= 0 ? 'up' : 'down'}`}>
-                <i className={`ti ti-trending-${todayVsYest >= 0 ? 'up' : 'down'}`} />
-                {todayVsYest >= 0 ? '+' : ''}{todayVsYest}% vs yesterday
+              <div className={`kpi-trend ${yesterdaySales > 0 ? (todayVsYest >= 0 ? 'up' : 'down') : 'info'}`}>
+                <i className={`ti ${yesterdaySales > 0 ? `ti-trending-${todayVsYest >= 0 ? 'up' : 'down'}` : 'ti-info-circle'}`} />
+                {yesterdaySales > 0 ? `${todayVsYest >= 0 ? '+' : ''}${todayVsYest}% vs yesterday` : 'No sales yesterday'}
               </div>
             </div>
 
@@ -262,9 +260,7 @@ export default function Dashboard() {
             <div className="product-hero-card">
               <div className="product-hero-label">This month's revenue</div>
               <div className="product-hero-val">{fmtFull(thisMonthAchieved)}</div>
-              <div className="product-hero-sub">
-                Gayatri Metal Finishers, Satara
-              </div>
+              <div className="product-hero-sub">Sales captured from website orders this month</div>
               {productRevenue.map((p) => {
                 const barPct = thisMonthAchieved > 0 ? Math.round((p.achieved / thisMonthAchieved) * 100) : 0;
                 const tgtPct = p.target > 0 ? Math.round((p.achieved / p.target) * 100) : 0;
@@ -300,8 +296,8 @@ export default function Dashboard() {
               <div className="target-ring-wrap">
                 <TargetRing pct={targetPct} />
                 <div className="target-ring-label">
-                  <div className="target-ring-pct">{targetPct}%</div>
-                  <div className="target-ring-sub">achieved</div>
+                  <div className="target-ring-pct">{monthTarget > 0 ? `${targetPct}%` : '—'}</div>
+                  <div className="target-ring-sub">{monthTarget > 0 ? 'achieved' : 'no target set'}</div>
                 </div>
               </div>
               <div className="target-product-rows">
@@ -320,9 +316,9 @@ export default function Dashboard() {
                   {daysLeft} days left · Need {fmtRupee(dailyNeeded)}/day
                 </div>
               )}
-              {monthTarget === 500000 && (
+              {monthTarget === 0 && (
                 <div style={{ fontSize:11, color:'#B0B5C8', textAlign:'center', marginTop:8 }}>
-                  Set real targets in Analytics page
+                  Set a monthly target in Analytics
                 </div>
               )}
             </div>
@@ -385,7 +381,7 @@ export default function Dashboard() {
                     <div className="order-meta">{o.product} · {o.qty} boxes</div>
                   </div>
                   <div className="order-right">
-                    <div className="order-amount">{fmtFull(o.amount)}</div>
+                    <div className="order-amount">{fmtFull(o.total_amount || o.amount)}</div>
                     <span className={`status-badge ${o.status}`}>
                       {o.status.charAt(0).toUpperCase() + o.status.slice(1)}
                     </span>

@@ -1,0 +1,104 @@
+/* Victorex shared UI layer: consistent spacing, controls, tables and responsive behavior. */
+:root {
+  --surface-page: #F5F7FA;
+  --surface-soft: #F8FAFC;
+  --surface-border: #E5EAF0;
+  --ink-strong: #102744;
+  --ink-soft: #64748B;
+  --brand-gold: #C9922A;
+  --card-shadow: 0 6px 20px rgba(16, 39, 68, .045);
+  --card-shadow-hover: 0 13px 30px rgba(16, 39, 68, .085);
+}
+
+body { background: var(--surface-page); color: var(--ink-strong); }
+button { transition: transform .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease, color .16s ease; }
+button:disabled { cursor: not-allowed; opacity: .62; transform: none !important; }
+
+[class$="-shell"] { background: var(--surface-page) !important; }
+[class$="-main"] { min-width: 0; }
+[class$="-content"] { width: 100%; padding: clamp(20px, 2.3vw, 34px) clamp(16px, 2.5vw, 38px) 48px; }
+
+[class$="-header"] {
+  align-items: center;
+  margin-bottom: 24px;
+}
+[class$="-title"] { color: var(--ink-strong); font-size: clamp(21px, 2.1vw, 28px); font-weight: 740; letter-spacing: -.04em; }
+[class$="-sub"] { color: var(--ink-soft); font-size: 13px; }
+
+button[class$="-add-btn"], button[class$="-target-btn"], button[class$="-submit"] {
+  min-height: 42px;
+  padding: 0 17px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #17385E, #102744);
+  box-shadow: 0 6px 16px rgba(16, 39, 68, .13);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 650;
+}
+button[class$="-add-btn"]:hover, button[class$="-target-btn"]:hover, button[class$="-submit"]:hover {
+  box-shadow: 0 9px 20px rgba(16, 39, 68, .2);
+  transform: translateY(-1px);
+}
+
+[class$="-table-wrap"], .credit-card-plain, .dash-card, .kpi-card, .analytics-kpi,
+.diary-sum-card, .offers-card, .stock-card, .dealer-card, .purchase-card, .supplier-card {
+  border-color: var(--surface-border);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+}
+[class$="-table-wrap"] { overflow-x: auto; background: #fff; }
+[class$="-table"] { min-width: 680px; }
+table thead th { background: #F7F9FC; color: #718096; font-size: 10px; font-weight: 750; letter-spacing: .065em; }
+table tbody tr:hover td { background: #FAFBFD; }
+
+input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+  min-height: 40px;
+  border: 1px solid var(--surface-border);
+  border-radius: 10px;
+  background: #fff;
+  color: #18314F;
+  font-size: 13px;
+}
+textarea { padding: 10px 12px; }
+input::placeholder, textarea::placeholder { color: #9AA6B5; }
+input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:focus {
+  border-color: var(--brand-gold) !important;
+  outline: 0;
+  box-shadow: 0 0 0 4px rgba(201, 146, 42, .12);
+}
+
+[class$="-filters"] { gap: 12px; margin-bottom: 18px; }
+[class$="-search"] { min-height: 42px; border-radius: 11px; }
+[class$="-filter-btn"] { min-height: 36px; border-radius: 999px; font-weight: 600; }
+
+.modal-overlay, .inv-modal-overlay { backdrop-filter: blur(5px); background: rgba(10, 25, 44, .48); }
+.modal-card, .inv-modal-card { border: 1px solid rgba(229, 234, 240, .9); border-radius: 18px; box-shadow: 0 24px 70px rgba(9, 26, 49, .23); }
+.modal-header, .inv-modal-header { padding: 18px 22px 15px; border-bottom-color: #EDF0F4; }
+.modal-title, .inv-modal-title { color: var(--ink-strong); font-size: 17px; letter-spacing: -.02em; }
+.modal-footer { border-top-color: #EDF0F4; }
+
+.dash-card, .kpi-card { transition: transform .18s ease, box-shadow .18s ease; }
+.dash-card:hover, .kpi-card:hover { box-shadow: var(--card-shadow-hover); }
+.product-hero-card { position: relative; overflow: hidden; border-radius: 18px; background: radial-gradient(circle at 90% 0%, rgba(232,184,75,.2), transparent 36%), linear-gradient(145deg, #15365D, #0B1F3A 70%); box-shadow: 0 12px 30px rgba(11,31,58,.13); }
+.chart-wrap { min-height: 220px; }
+
+.status-badge, [class$="-status-badge"] { letter-spacing: .01em; }
+
+@media (max-width: 768px) {
+  [class$="-content"] { padding: 20px 16px 34px; }
+  [class$="-header"] { align-items: flex-start; }
+  [class$="-table"] { min-width: 620px; }
+  .dash-card, .credit-card-plain { padding: 16px; }
+  .chart-wrap { min-height: 195px; }
+}
+
+@media (max-width: 480px) {
+  [class$="-header"] { gap: 14px; }
+  button[class$="-add-btn"], button[class$="-target-btn"] { min-height: 40px; padding: 0 13px; font-size: 11px; }
+  .modal-overlay, .inv-modal-overlay { align-items: flex-end; padding: 8px; }
+  .modal-card, .inv-modal-card { max-height: 92vh; overflow-y: auto; border-radius: 18px 18px 12px 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

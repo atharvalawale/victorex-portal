@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import './Sidebar.css';
@@ -27,6 +28,11 @@ const NAV_MORE = [
 
 export default function Sidebar({ open, onClose }) {
   const navigate = useNavigate();
+  const [userEmail, setUserEmail] = useState('');
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setUserEmail(data.session?.user?.email || ''));
+  }, []);
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -80,9 +86,9 @@ export default function Sidebar({ open, onClose }) {
 
         <div className="sidebar-user">
           <div className="sidebar-user-inner" onClick={handleLogout} title="Sign out">
-            <div className="sidebar-avatar">SL</div>
+            <div className="sidebar-avatar">{userEmail ? userEmail[0].toUpperCase() : 'A'}</div>
             <div className="sidebar-user-info">
-              <div className="uname">Sanjay Lawale</div>
+              <div className="uname" title={userEmail}>{userEmail || 'Administrator'}</div>
               <div className="urole">Administrator</div>
             </div>
             <i className="ti ti-logout sidebar-user-logout" aria-hidden="true" />
