@@ -27,22 +27,6 @@ const localDateKey = (date = new Date()) => {
   return `${year}-${month}-${day}`;
 };
 
-function TargetRing({ pct }) {
-  const R = 54, C = 2 * Math.PI * R;
-  const dash = (Math.min(pct, 100) / 100) * C;
-  const color = pct >= 80 ? '#2D9D6E' : pct >= 50 ? '#17877C' : '#D85A30';
-  return (
-    <svg width="140" height="140" viewBox="0 0 140 140">
-      <circle cx="70" cy="70" r={R} fill="none" stroke="#F4F5F9" strokeWidth="10" />
-      <circle cx="70" cy="70" r={R} fill="none" stroke={color} strokeWidth="10"
-        strokeDasharray={`${dash} ${C}`} strokeLinecap="round"
-        transform="rotate(-90 70 70)"
-        style={{ transition: 'stroke-dasharray 1s cubic-bezier(.4,0,.2,1)' }}
-      />
-    </svg>
-  );
-}
-
 function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
@@ -75,7 +59,7 @@ export default function Dashboard() {
   const [dues, setDues]                       = useState([]);
   const [monthlySales, setMonthlySales]       = useState([]);
   const [productRevenue, setProductRevenue]   = useState([]);
-  const [monthTarget, setMonthTarget]         = useState(0);
+  const [monthlyCollected, setMonthlyCollected] = useState(0);
 
   useEffect(() => { fetchAll(); }, []);
 
@@ -99,6 +83,9 @@ export default function Dashboard() {
     const dealers  = dealersRes.data  || [];
     const payments = paymentsRes.data || [];
     const targets  = targetsRes.data  || [];
+    setMonthlyCollected(payments
+      .filter(payment => payment.date?.startsWith(thisMonth))
+      .reduce((sum, payment) => sum + Number(payment.amount || 0), 0));
 
     /* ── KPIs ── */
     const todayOrders     = orders.filter(o => o.date === today);
@@ -174,19 +161,10 @@ export default function Dashboard() {
 
     setProductRevenue(prodRevenue);
 
-    /* ── Month target ── */
-    const totalTarget = targets.reduce((s, t) => s + Number(t.target_amount), 0);
-    if (totalTarget > 0) setMonthTarget(totalTarget);
-
     setLoading(false);
   }
 
   const thisMonthAchieved = productRevenue.reduce((s, p) => s + p.achieved, 0);
-  const targetPct         = monthTarget > 0 ? Math.round((thisMonthAchieved / monthTarget) * 100) : 0;
-  const daysInMonth       = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
-  const daysPassed        = new Date().getDate();
-  const daysLeft          = daysInMonth - daysPassed;
-  const dailyNeeded       = daysLeft > 0 ? Math.max(0, Math.round((monthTarget - thisMonthAchieved) / daysLeft)) : 0;
   const todayVsYest       = yesterdaySales > 0 ? Math.round(((todaySales - yesterdaySales) / yesterdaySales) * 100) : 0;
 
   if (loading) return (
@@ -295,48 +273,31 @@ export default function Dashboard() {
               )}
             </div>
 
-            <div className="dash-card target-card">
+            <div className="dash-card collection-card">
               <div className="dash-section-hdr">
-                <span className="dash-section-title">
-                  <i className="ti ti-target" />Monthly Target
-                </span>
+                <span className="dash-section-title"><i className="ti ti-wallet" />Collection snapshot</span>
               </div>
-              {monthTarget > 0 ? (
-                <>
-                  <div className="target-ring-wrap">
-                    <TargetRing pct={targetPct} />
-                    <div className="target-ring-label">
-                      <div className="target-ring-pct">{targetPct}%</div>
-                      <div className="target-ring-sub">achieved</div>
-                    </div>
-                  </div>
-                  <div className="target-product-rows">
-                    {productRevenue.map((p) => (
-                      <div className="target-product-row" key={p.id}>
-                        <div className="target-dot" style={{ background:p.color }} />
-                        <span className="target-product-name">{p.name}</span>
-                        <span className="target-product-pct">
-                          {p.target > 0 ? `${Math.round((p.achieved / p.target) * 100)}%` : 'No product target'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  {daysLeft > 0 && (
-                    <div className="target-days-note">
-                      {daysLeft} days left · Need {fmtRupee(dailyNeeded)}/day
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="target-empty-state">
-                  <div className="target-empty-icon"><i className="ti ti-target-arrow" /></div>
-                  <strong>No monthly target set</strong>
-                  <span>Add a target to track progress against this month’s sales.</span>
-                  <button className="target-setup-link" onClick={() => navigate('/analytics')}>
-                    Set target in Analytics <i className="ti ti-arrow-right" />
-                  </button>
+              <div className="collection-primary-label">Payments received this month</div>
+              <div className="collection-primary-value">{fmtFull(monthlyCollected)}</div>
+              <p className="collection-description">Money recorded in Khata during the current month.</p>
+              <div className="collection-stats">
+                <div className="collection-stat">
+                  <span>Sales this month</span>
+                  <strong>{fmtFull(thisMonthAchieved)}</strong>
                 </div>
-              )}
+                <div className="collection-stat">
+                  <span>Open dues</span>
+                  <strong className={outstanding > 0 ? 'is-due' : 'is-clear'}>{fmtFull(outstanding)}</strong>
+                </div>
+              </div>
+              <div className="collection-actions">
+                <button className="collection-manage-link" onClick={() => navigate('/khata')}>
+                  Manage payments <i className="ti ti-arrow-right" />
+                </button>
+                <button className="collection-goal-link" onClick={() => navigate('/analytics')}>
+                  Set optional goal
+                </button>
+              </div>
             </div>
           </div>
 

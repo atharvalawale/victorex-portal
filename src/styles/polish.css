@@ -247,6 +247,19 @@ table tbody tr:hover td { background: #F7FAF9 !important; }
 .target-setup-link { color: #16796F !important; font-size: 12px !important; }
 .target-setup-link:hover { color: #104F4C !important; }
 .target-days-note { color: #17645F !important; background: #EAF6F3 !important; }
+.collection-card { display: flex; flex-direction: column; min-height: 280px; }
+.collection-primary-label { margin-top: 10px; color: #718184; font-size: 10px; font-weight: 700; letter-spacing: .085em; text-transform: uppercase; }
+.collection-primary-value { margin-top: 6px; color: #14776E; font-size: clamp(29px, 2.7vw, 36px); font-weight: 760; letter-spacing: -.055em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.collection-description { margin-top: 6px; color: #829194; font-size: 11px; line-height: 1.45; }
+.collection-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+.collection-stat { display: flex; min-width: 0; flex-direction: column; gap: 6px; padding: 11px 12px; border: 1px solid #E8EFEE; border-radius: 11px; background: #F8FAFA; }
+.collection-stat span { color: #748588; font-size: 10px; font-weight: 600; }
+.collection-stat strong { overflow: hidden; color: #263C40; font-size: 15px; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.collection-stat strong.is-due { color: #BF5C4E; }
+.collection-stat strong.is-clear { color: #21856C; }
+.collection-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 18px; }
+.collection-manage-link, .collection-goal-link { display: inline-flex; align-items: center; gap: 6px; padding: 5px 0; background: transparent; color: #16796F; font-size: 11px; font-weight: 680; }
+.collection-manage-link:hover, .collection-goal-link:hover { color: #104F4C; transform: translateX(2px); }
 .order-dealer, .order-amount, .due-name { color: #263C40 !important; }
 .due-avatar { color: #176F69 !important; background: #EAF6F3 !important; border-color: #DCEBE8 !important; }
 .chart-wrap { min-height: 225px; }
