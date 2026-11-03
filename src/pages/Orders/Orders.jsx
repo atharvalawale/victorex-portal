@@ -21,6 +21,7 @@ const EMPTY_ITEM = {
 export default function Orders() {
   const [sidebarOpen, setSidebarOpen]   = useState(false);
   const [orders, setOrders]             = useState([]);
+  const [payments, setPayments]         = useState([]);
   const [dealers, setDealers]           = useState([]);
   const [packSizes, setPackSizes]       = useState([]);
   const [dealerPrices, setDealerPrices] = useState([]);
@@ -46,16 +47,18 @@ export default function Orders() {
 
   async function fetchAll() {
     setLoading(true);
-    const [o, d, ps, dp] = await Promise.all([
+    const [o, d, ps, dp, p] = await Promise.all([
       supabase.from('orders').select('*').order('created_at', { ascending: false }),
       supabase.from('dealers').select('name, location').eq('status', 'active').order('name'),
       supabase.from('pack_sizes').select('*').order('product'),
       supabase.from('dealer_prices').select('*'),
+      supabase.from('payments').select('id, order_id, amount, date').not('order_id', 'is', null),
     ]);
     setOrders(o.data        || []);
     setDealers(d.data       || []);
     setPackSizes(ps.data    || []);
     setDealerPrices(dp.data || []);
+    setPayments(p.data || []);
     setLoading(false);
   }
 
@@ -307,6 +310,13 @@ export default function Orders() {
 
   const fmtAmt  = n => `₹${Number(n || 0).toLocaleString('en-IN')}`;
   const fmtDate = d => new Date(d).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+  function getPaymentSummary(order) {
+    const total = Number(order.total_amount || order.amount || 0);
+    const received = payments.filter(payment => payment.order_id === order.id)
+      .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+    const due = Math.max(total - received, 0);
+    return { total, received, due, status: received <= 0 ? 'unpaid' : due <= 0 ? 'paid' : 'part-paid' };
+  }
   const totalAmt = filtered.reduce((s, o) => s + Number(o.total_amount || o.amount || 0), 0);
 
   return (
@@ -367,6 +377,7 @@ export default function Orders() {
                     <th>Dealer</th>
                     <th>Items</th>
                     <th>Total Amount</th>
+                    <th>Payment</th>
                     <th>Date</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -375,12 +386,14 @@ export default function Orders() {
                 <tbody>
                   {filtered.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="orders-empty">
+                      <td colSpan={8} className="orders-empty">
                         <i className="ti ti-inbox" />
                         <span>No orders yet — click New Order to add one</span>
                       </td>
                     </tr>
-                  ) : filtered.map(o => (
+                  ) : filtered.map(o => {
+                    const payment = getPaymentSummary(o);
+                    return (
                     <tr key={o.id}>
                       <td><span className="orders-id">{o.order_number}</span></td>
                       <td>
@@ -394,6 +407,15 @@ export default function Orders() {
                         </div>
                       </td>
                       <td><strong>{fmtAmt(o.total_amount || o.amount)}</strong></td>
+                      <td>
+                        <span className={`orders-payment-badge ${payment.status}`}>
+                          <i className={`ti ${payment.status === 'paid' ? 'ti-circle-check' : payment.status === 'part-paid' ? 'ti-clock' : 'ti-circle-dashed'}`} />
+                          {payment.status === 'paid' ? 'Paid' : payment.status === 'part-paid' ? 'Part-paid' : 'Unpaid'}
+                        </span>
+                        {payment.received > 0 && payment.status !== 'paid' && (
+                          <div className="orders-payment-detail">{fmtAmt(payment.received)} received</div>
+                        )}
+                      </td>
                       <td className="orders-date">{fmtDate(o.date)}</td>
                       <td>
                         <select
@@ -421,7 +443,8 @@ export default function Orders() {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             )}
@@ -620,6 +643,24 @@ export default function Orders() {
                   </span>
                 </div>
               </div>
+
+              {(() => {
+                const payment = getPaymentSummary(viewOrder);
+                return (
+                  <div className={`orders-payment-summary ${payment.status}`}>
+                    <div>
+                      <span className="orders-payment-summary-title">Payment received</span>
+                      <strong>{fmtAmt(payment.received)} <small>of {fmtAmt(payment.total)}</small></strong>
+                    </div>
+                    <div className="orders-payment-summary-right">
+                      <span className={`orders-payment-badge ${payment.status}`}>
+                        {payment.status === 'paid' ? 'Paid' : payment.status === 'part-paid' ? 'Part-paid' : 'Unpaid'}
+                      </span>
+                      {payment.due > 0 && <small>{fmtAmt(payment.due)} remaining</small>}
+                    </div>
+                  </div>
+                );
+              })()}
 
               <table className="orders-view-table">
                 <thead>

@@ -458,3 +458,10 @@
   .khata-stats   { grid-template-columns: repeat(2, 1fr); }
   .modal-row     { grid-template-columns: 1fr; }
 }
+.khata-form-hint {
+  display: block;
+  margin-top: 5px;
+  color: #7B8797;
+  font-size: 11px;
+  line-height: 1.45;
+}

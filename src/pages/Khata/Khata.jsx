@@ -7,7 +7,7 @@ import './Khata.css';
 const PAYMENT_MODES = ['cash', 'upi', 'cheque', 'neft', 'rtgs'];
 
 const EMPTY_FORM = {
-  dealer_name: '', amount: '', mode: 'cash', reference: '', notes: '', date: new Date().toISOString().split('T')[0],
+  dealer_name: '', order_id: '', amount: '', mode: 'cash', reference: '', notes: '', date: new Date().toISOString().split('T')[0],
 };
 
 export default function Khata() {
@@ -48,7 +48,7 @@ export default function Khata() {
   function getDealerSummary(dealerName) {
     const dealerOrders   = orders.filter((o) => o.dealer_name === dealerName);
     const dealerPayments = payments.filter((p) => p.dealer_name === dealerName);
-    const totalOrdered   = dealerOrders.reduce((s, o) => s + Number(o.amount), 0);
+    const totalOrdered   = dealerOrders.reduce((s, o) => s + Number(o.total_amount || o.amount || 0), 0);
     const totalPaid      = dealerPayments.reduce((s, p) => s + Number(p.amount), 0);
     const outstanding    = totalOrdered - totalPaid;
     return { totalOrdered, totalPaid, outstanding, dealerOrders, dealerPayments };
@@ -61,6 +61,15 @@ export default function Khata() {
   }, 0);
 
   const totalReceived = payments.reduce((s, p) => s + Number(p.amount), 0);
+
+  function getOrderPaid(orderId) {
+    return payments.filter((payment) => payment.order_id === orderId)
+      .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+  }
+
+  function getOrderDue(order) {
+    return Math.max(Number(order.total_amount || order.amount || 0) - getOrderPaid(order.id), 0);
+  }
 
   /* ── Aging buckets ── */
   function getAgingBucket(days) {
@@ -89,6 +98,7 @@ export default function Khata() {
 
     const { error } = await supabase.from('payments').insert({
       dealer_name: form.dealer_name,
+      order_id:   form.order_id || null,
       amount:      Number(form.amount),
       mode:        form.mode,
       reference:   form.reference,
@@ -96,12 +106,15 @@ export default function Khata() {
       date:        form.date,
     });
 
-    if (!error) { showToast('Payment recorded ✓'); fetchAll(); }
-    else showToast('Error recording payment');
-
     setSaving(false);
-    setShowModal(false);
-    setForm(EMPTY_FORM);
+    if (!error) {
+      showToast('Payment recorded ✓');
+      setShowModal(false);
+      setForm(EMPTY_FORM);
+      fetchAll();
+    } else {
+      showToast('Could not record payment. Check the Supabase update and try again.');
+    }
   }
 
   /* ── Delete payment ── */
@@ -294,9 +307,9 @@ export default function Khata() {
                               <div className="khata-entry-sub">{fmtDate(o.date)} · {o.order_number}</div>
                             </div>
                             <div style={{ textAlign: 'right' }}>
-                              <div className="khata-entry-amt debit">{fmtAmt(o.amount)}</div>
-                              <span className={`status-badge ${o.status}`}>
-                                {o.status.charAt(0).toUpperCase() + o.status.slice(1)}
+                              <div className="khata-entry-amt debit">{fmtAmt(o.total_amount || o.amount)}</div>
+                              <span className={`status-badge ${getOrderDue(o) <= 0 ? 'delivered' : getOrderPaid(o.id) > 0 ? 'processing' : 'pending'}`}>
+                                {getOrderDue(o) <= 0 ? 'Paid' : getOrderPaid(o.id) > 0 ? 'Part-paid' : 'Unpaid'}
                               </span>
                             </div>
                           </div>
@@ -317,7 +330,9 @@ export default function Khata() {
                                 {p.mode.toUpperCase()}
                                 {p.reference && <span className="khata-ref"> · {p.reference}</span>}
                               </div>
-                              <div className="khata-entry-sub">{fmtDate(p.date)}{p.notes && ` · ${p.notes}`}</div>
+                              <div className="khata-entry-sub">
+                                {fmtDate(p.date)}{p.order_id && ` · ${orders.find((o) => o.id === p.order_id)?.order_number || 'Linked order'}`}{p.notes && ` · ${p.notes}`}
+                              </div>
                             </div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               <div className="khata-entry-amt credit">{fmtAmt(p.amount)}</div>
@@ -359,7 +374,7 @@ export default function Khata() {
                 <label>Dealer *</label>
                 <select
                   value={form.dealer_name}
-                  onChange={(e) => setForm({ ...form, dealer_name: e.target.value })}
+                  onChange={(e) => setForm({ ...form, dealer_name: e.target.value, order_id: '' })}
                   className={errors.dealer_name ? 'error' : ''}
                 >
                   <option value="">Select dealer...</option>
@@ -368,6 +383,23 @@ export default function Khata() {
                   ))}
                 </select>
                 {errors.dealer_name && <span className="modal-error">{errors.dealer_name}</span>}
+              </div>
+
+              <div className="modal-field">
+                <label>Apply payment to order (optional)</label>
+                <select
+                  value={form.order_id}
+                  onChange={(e) => setForm({ ...form, order_id: e.target.value })}
+                  disabled={!form.dealer_name}
+                >
+                  <option value="">Dealer payment / advance (not linked)</option>
+                  {orders.filter((order) => order.dealer_name === form.dealer_name && getOrderDue(order) > 0).map((order) => (
+                    <option key={order.id} value={order.id}>
+                      {order.order_number} · Due {fmtAmt(getOrderDue(order))}
+                    </option>
+                  ))}
+                </select>
+                <span className="khata-form-hint">Link it to an order to show its payment status on the Orders page.</span>
               </div>
 
               <div className="modal-row">
