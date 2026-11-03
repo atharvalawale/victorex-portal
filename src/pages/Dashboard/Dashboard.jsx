@@ -30,7 +30,7 @@ const localDateKey = (date = new Date()) => {
 function TargetRing({ pct }) {
   const R = 54, C = 2 * Math.PI * R;
   const dash = (Math.min(pct, 100) / 100) * C;
-  const color = pct >= 80 ? '#2D9D6E' : pct >= 50 ? '#C9922A' : '#D85A30';
+  const color = pct >= 80 ? '#2D9D6E' : pct >= 50 ? '#17877C' : '#D85A30';
   return (
     <svg width="140" height="140" viewBox="0 0 140 140">
       <circle cx="70" cy="70" r={R} fill="none" stroke="#F4F5F9" strokeWidth="10" />
@@ -46,8 +46,8 @@ function TargetRing({ pct }) {
 function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background:'#fff', border:'0.5px solid #E2E5EE', borderRadius:8, padding:'10px 14px', fontSize:12, boxShadow:'0 4px 16px rgba(11,31,58,0.08)' }}>
-      <div style={{ fontWeight:700, color:'#0B1F3A', marginBottom:6 }}>{label}</div>
+    <div style={{ background:'#fff', border:'0.5px solid #E2E5EE', borderRadius:8, padding:'10px 14px', fontSize:12, boxShadow:'0 4px 16px rgba(22,53,59,0.08)' }}>
+      <div style={{ fontWeight:700, color:'#16353B', marginBottom:6 }}>{label}</div>
       {payload.map((p) => (
         <div key={p.dataKey} style={{ color:p.color, fontWeight:600, marginBottom:2 }}>
           {p.name}: {fmtFull(p.value)}
@@ -168,7 +168,7 @@ export default function Dashboard() {
         name: p,
         achieved,
         target,
-        color: ['#C9922A', '#0B1F3A', '#E8B84B'][i],
+        color: ['#17877C', '#16353B', '#E99268'][i],
       };
     });
 
@@ -195,7 +195,7 @@ export default function Dashboard() {
       <div className="dashboard-main">
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
         <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'60vh', gap:12, color:'#8A8FA3', fontSize:14 }}>
-          <div style={{ width:24, height:24, border:'2px solid #E2E5EE', borderTopColor:'#C9922A', borderRadius:'50%', animation:'spin 0.7s linear infinite' }} />
+          <div style={{ width:24, height:24, border:'2px solid #E2E5EE', borderTopColor:'#17877C', borderRadius:'50%', animation:'spin 0.7s linear infinite' }} />
           Loading dashboard...
         </div>
       </div>
@@ -214,12 +214,12 @@ export default function Dashboard() {
           {/* KPI Cards */}
           <div className="kpi-grid">
             <div className="kpi-card">
-              <div className="kpi-accent" style={{ background:'#C9922A' }} />
-              <div className="kpi-icon-wrap" style={{ background:'rgba(201,146,42,0.1)' }}>
-                <i className="ti ti-currency-rupee" style={{ color:'#C9922A' }} />
+              <div className="kpi-accent" style={{ background:'#17877C' }} />
+              <div className="kpi-icon-wrap" style={{ background:'rgba(23,135,124,0.1)' }}>
+                <i className="ti ti-currency-rupee" style={{ color:'#17877C' }} />
               </div>
               <div className="kpi-label">Today's Sales</div>
-              <div className="kpi-value" style={{ color:'#C9922A' }}>{fmtFull(todaySales)}</div>
+              <div className="kpi-value" style={{ color:'#17877C' }}>{fmtFull(todaySales)}</div>
               <div className={`kpi-trend ${yesterdaySales > 0 ? (todayVsYest >= 0 ? 'up' : 'down') : 'info'}`}>
                 <i className={`ti ${yesterdaySales > 0 ? `ti-trending-${todayVsYest >= 0 ? 'up' : 'down'}` : 'ti-info-circle'}`} />
                 {yesterdaySales > 0 ? `${todayVsYest >= 0 ? '+' : ''}${todayVsYest}% vs yesterday` : 'No sales yesterday'}
@@ -251,9 +251,9 @@ export default function Dashboard() {
             </div>
 
             <div className="kpi-card">
-              <div className="kpi-accent" style={{ background:'#0B1F3A' }} />
-              <div className="kpi-icon-wrap" style={{ background:'rgba(11,31,58,0.08)' }}>
-                <i className="ti ti-users" style={{ color:'#0B1F3A' }} />
+              <div className="kpi-accent" style={{ background:'#16353B' }} />
+              <div className="kpi-icon-wrap" style={{ background:'rgba(22,53,59,0.08)' }}>
+                <i className="ti ti-users" style={{ color:'#16353B' }} />
               </div>
               <div className="kpi-label">Active Dealers</div>
               <div className="kpi-value">{activeDealers}</div>
@@ -351,16 +351,16 @@ export default function Dashboard() {
                 <AreaChart data={monthlySales} margin={{ top:4, right:4, left:0, bottom:0 }}>
                   <defs>
                     <linearGradient id="gW" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#C9922A" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#C9922A" stopOpacity={0} />
+                      <stop offset="5%"  stopColor="#17877C" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#17877C" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="gC" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#0B1F3A" stopOpacity={0.1} />
-                      <stop offset="95%" stopColor="#0B1F3A" stopOpacity={0} />
+                      <stop offset="5%"  stopColor="#16353B" stopOpacity={0.1} />
+                      <stop offset="95%" stopColor="#16353B" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="gP" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#E8B84B" stopOpacity={0.15} />
-                      <stop offset="95%" stopColor="#E8B84B" stopOpacity={0} />
+                      <stop offset="5%"  stopColor="#E99268" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#E99268" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F0F1F5" />
@@ -368,9 +368,9 @@ export default function Dashboard() {
                   <YAxis tickFormatter={fmtRupee} tick={{ fontSize:11, fill:'#8A8FA3' }} axisLine={false} tickLine={false} width={52} />
                   <Tooltip content={<ChartTooltip />} />
                   <Legend wrapperStyle={{ fontSize:11, paddingTop:8 }} />
-                  <Area type="monotone" dataKey="wallvex_pro" name="WallVex Pro" stroke="#C9922A" fill="url(#gW)" strokeWidth={2} dot={false} />
-                  <Area type="monotone" dataKey="chromvex"    name="Chromvex"    stroke="#0B1F3A" fill="url(#gC)" strokeWidth={2} dot={false} />
-                  <Area type="monotone" dataKey="primvex"     name="Primvex"     stroke="#E8B84B" fill="url(#gP)" strokeWidth={2} dot={false} />
+                  <Area type="monotone" dataKey="wallvex_pro" name="WallVex Pro" stroke="#17877C" fill="url(#gW)" strokeWidth={2} dot={false} />
+                  <Area type="monotone" dataKey="chromvex"    name="Chromvex"    stroke="#16353B" fill="url(#gC)" strokeWidth={2} dot={false} />
+                  <Area type="monotone" dataKey="primvex"     name="Primvex"     stroke="#E99268" fill="url(#gP)" strokeWidth={2} dot={false} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -385,12 +385,12 @@ export default function Dashboard() {
               </div>
               {recentOrders.length === 0 ? (
                 <div style={{ textAlign:'center', padding:'24px', color:'#B0B5C8', fontSize:13 }}>
-                  No orders yet — <span style={{ color:'#C9922A', cursor:'pointer' }} onClick={() => navigate('/orders')}>add your first order</span>
+                  No orders yet — <span style={{ color:'#17877C', cursor:'pointer' }} onClick={() => navigate('/orders')}>add your first order</span>
                 </div>
               ) : recentOrders.map((o) => (
                 <div className="order-row" key={o.id}>
                   <div className="order-status-dot" style={{
-                    background: o.status === 'delivered' ? '#2D9D6E' : o.status === 'processing' ? '#3A8FD4' : '#E8B84B'
+                    background: o.status === 'delivered' ? '#2D9D6E' : o.status === 'processing' ? '#3A8FD4' : '#E99268'
                   }} />
                   <div className="order-info">
                     <div className="order-dealer">{o.dealer_name} · {o.location}</div>
@@ -443,9 +443,9 @@ export default function Dashboard() {
                   <YAxis tickFormatter={fmtRupee} tick={{ fontSize:11, fill:'#8A8FA3' }} axisLine={false} tickLine={false} width={52} />
                   <Tooltip content={<ChartTooltip />} />
                   <Legend wrapperStyle={{ fontSize:11, paddingTop:8 }} />
-                  <Bar dataKey="wallvex_pro" name="WallVex Pro" fill="#C9922A" radius={[4,4,0,0]} maxBarSize={28} />
-                  <Bar dataKey="chromvex"    name="Chromvex"    fill="#0B1F3A" radius={[4,4,0,0]} maxBarSize={28} />
-                  <Bar dataKey="primvex"     name="Primvex"     fill="#E8B84B" radius={[4,4,0,0]} maxBarSize={28} />
+                  <Bar dataKey="wallvex_pro" name="WallVex Pro" fill="#17877C" radius={[4,4,0,0]} maxBarSize={28} />
+                  <Bar dataKey="chromvex"    name="Chromvex"    fill="#16353B" radius={[4,4,0,0]} maxBarSize={28} />
+                  <Bar dataKey="primvex"     name="Primvex"     fill="#E99268" radius={[4,4,0,0]} maxBarSize={28} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
