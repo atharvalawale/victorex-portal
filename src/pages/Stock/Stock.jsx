@@ -4,8 +4,7 @@ import Topbar from '../../components/Topbar/Topbar';
 import { supabase } from '../../lib/supabase';
 import './Stock.css';
 
-const PRODUCTS = ['WallVex Pro', 'Chromvex', 'Primvex'];
-const PRODUCT_COLORS = { 'WallVex Pro': '#C9922A', 'Chromvex': '#0B1F3A', 'Primvex': '#E8B84B' };
+const PRODUCT_COLORS = { 'WallVex Pro': '#17877C', 'Chromvex': '#16353B', 'Primvex': '#E99268' };
 
 export default function Stock() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -154,8 +153,8 @@ export default function Stock() {
                   const pct      = s.reorder_level > 0 ? Math.min(Math.round((s.quantity / (s.reorder_level * 4)) * 100), 100) : 50;
                   const isLow    = s.quantity <= s.reorder_level;
                   const isCritical = s.quantity === 0;
-                  const barColor = isCritical ? '#D85A30' : isLow ? '#E8B84B' : '#2D9D6E';
-                  const color    = PRODUCT_COLORS[s.product] || '#0B1F3A';
+                  const barColor = isCritical ? '#D85A30' : isLow ? '#E99268' : '#2D9D6E';
+                  const color    = PRODUCT_COLORS[s.product] || '#16353B';
 
                   return (
                     <div key={s.id} className={`stock-card${isLow ? ' low' : ''}`}>
@@ -247,7 +246,7 @@ export default function Stock() {
                         <tr key={s.id}>
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <div style={{ width: 8, height: 8, borderRadius: '50%', background: PRODUCT_COLORS[s.product] || '#0B1F3A' }} />
+                              <div style={{ width: 8, height: 8, borderRadius: '50%', background: PRODUCT_COLORS[s.product] || '#16353B' }} />
                               <strong>{s.product}</strong>
                             </div>
                           </td>

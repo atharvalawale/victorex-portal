@@ -1,0 +1,58 @@
+.batch-shell{display:flex;min-height:100vh;background:var(--bg,#f3f7f7)}
+.batch-main{flex:1;min-width:0;margin-left:220px}
+.batch-content{width:min(1260px,100%);margin:0 auto;padding:28px 30px 48px}
+.batch-heading,.batch-history-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin:4px 0 22px}
+.batch-eyebrow{font-size:11px;font-weight:800;letter-spacing:.13em;color:var(--gold,#17877c)}
+.batch-heading h1{margin:7px 0;color:var(--navy,#16353b);font-family:var(--font-display);font-size:clamp(25px,3vw,34px);letter-spacing:-.04em}
+.batch-heading p,.batch-panel-title p,.batch-history-heading p{margin:0;color:var(--text-muted,#74858a);font-size:13px}
+.batch-lock{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(23,135,124,.24);border-radius:999px;padding:8px 12px;background:rgba(23,135,124,.08);color:var(--gold,#17877c);font-size:12px;font-weight:700}
+.batch-notice{margin:0 0 14px;padding:12px 14px;border:1px solid var(--border);border-radius:11px;background:var(--bg-card);color:var(--text-primary);font-size:13px}
+.batch-panel{margin-bottom:18px;padding:22px;border:1px solid var(--border,#e1e9e8);border-radius:17px;background:var(--bg-card,#fff);box-shadow:var(--shadow-sm,0 5px 20px rgba(22,53,59,.04))}
+.batch-panel-title{margin-bottom:18px}
+.batch-panel-title h2,.batch-history-heading h2{margin:0 0 5px;color:var(--navy,#16353b);font-size:17px}
+.batch-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.batch-fields label{display:grid;gap:7px;color:var(--navy,#16353b);font-size:12px;font-weight:700}
+.batch-fields input,.batch-fields select,.batch-fields textarea,.batch-line input{width:100%;min-width:0;box-sizing:border-box;border:1px solid var(--border,#e1e9e8);border-radius:9px;background:var(--bg-input,#f8fafa);color:var(--text-primary,#182c33);padding:10px 11px;font:inherit;font-size:13px;outline:none}
+.batch-fields input,.batch-fields select{height:42px}
+.batch-fields textarea{resize:vertical}
+.batch-fields input:focus,.batch-fields select:focus,.batch-fields textarea:focus,.batch-line input:focus{border-color:var(--border-focus,#17877c);box-shadow:0 0 0 3px rgba(23,135,124,.1)}
+.batch-cost-columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:20px 0}
+.batch-cost-card{min-width:0;padding:15px;border:1px solid var(--border,#e1e9e8);border-radius:13px;background:var(--bg,#f3f7f7)}
+.batch-cost-card header{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:12px}
+.batch-cost-card h3{margin:0;color:var(--navy,#16353b);font-size:13px}
+.batch-cost-card header strong{color:var(--gold,#17877c);font-size:13px}
+.batch-line{display:grid;grid-template-columns:minmax(0,1fr) minmax(86px,.7fr) 28px;gap:6px;margin-bottom:8px}
+.batch-line input{height:37px;padding:7px 8px;font-size:12px}
+.batch-line button{border:0;background:transparent;color:var(--text-muted,#74858a);cursor:pointer}
+.batch-add-line{display:inline-flex;align-items:center;gap:5px;padding:5px 0;border:0;background:transparent;color:var(--gold,#17877c);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.batch-overheads{grid-template-columns:repeat(2,minmax(0,1fr));margin:0 0 18px}
+.batch-overheads .batch-notes-field{grid-column:1/-1}
+.batch-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;padding:15px;border-radius:13px;background:var(--navy,#16353b)}
+.batch-summary-card{display:flex;flex-direction:column;gap:5px;min-width:0}
+.batch-summary-card span{color:rgba(255,255,255,.7);font-size:11px}
+.batch-summary-card strong{color:white;font-size:clamp(16px,2vw,22px);letter-spacing:-.03em}
+.batch-summary-card small{color:rgba(255,255,255,.58);font-size:10px}
+.batch-summary-card.is-positive strong{color:#7ce0b2}
+.batch-summary-card.is-negative strong{color:#ff9b8f}
+.batch-save{display:inline-flex;justify-content:center;align-items:center;gap:8px;height:43px;margin-top:16px;padding:0 17px;border:0;border-radius:10px;background:var(--gold,#17877c);color:#fff;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:transform .18s ease,opacity .18s ease}
+.batch-save:hover:not(:disabled){transform:translateY(-1px)}
+.batch-save:disabled{opacity:.55;cursor:not-allowed}
+.batch-history-heading{align-items:center;margin:0 0 15px}
+.batch-history-totals{display:flex;gap:16px;flex-wrap:wrap;color:var(--text-muted,#74858a);font-size:11px}
+.batch-history-totals span{display:grid;gap:4px}
+.batch-history-totals strong{color:var(--navy,#16353b);font-size:14px}
+.batch-empty{padding:30px;text-align:center;color:var(--text-muted,#74858a);font-size:13px}
+.batch-table-wrap{overflow-x:auto}
+.batch-table{width:100%;border-collapse:collapse;font-size:12px;text-align:left}
+.batch-table th{padding:11px;color:var(--text-muted,#74858a);font-size:10px;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--border,#e1e9e8)}
+.batch-table td{padding:13px 11px;color:var(--text-primary,#182c33);border-bottom:1px solid var(--border,#e1e9e8);white-space:nowrap}
+.batch-table td:first-child{white-space:normal}
+.batch-table td small{display:block;margin-top:3px;color:var(--text-muted,#74858a)}
+.batch-profit{color:#18805d!important;font-weight:700}
+.batch-loss{color:#bc5046!important;font-weight:700}
+.batch-access-message{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px;background:var(--bg,#f3f7f7);color:var(--navy,#16353b);text-align:center}
+.batch-access-message h1,.batch-access-message p{margin:0}
+.batch-access-message p{color:var(--text-muted,#74858a)}
+.batch-access-message button{margin-top:8px;padding:10px 15px;border:0;border-radius:9px;background:var(--gold,#17877c);color:white;font-weight:700;cursor:pointer}
+@media(max-width:1000px){.batch-main{margin-left:0}.batch-content{padding:22px 18px 36px}.batch-cost-columns{grid-template-columns:1fr 1fr}.batch-cost-card:last-child{grid-column:1/-1}}
+@media(max-width:650px){.batch-content{padding:18px 13px 30px}.batch-panel{padding:16px}.batch-fields,.batch-overheads,.batch-cost-columns{grid-template-columns:1fr}.batch-cost-card:last-child,.batch-overheads .batch-notes-field{grid-column:auto}.batch-summary{grid-template-columns:1fr 1fr}.batch-heading{align-items:flex-start}.batch-history-heading{align-items:flex-start;flex-direction:column}}

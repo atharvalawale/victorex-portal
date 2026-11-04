@@ -4,10 +4,8 @@ import Topbar from '../../components/Topbar/Topbar';
 import { supabase } from '../../lib/supabase';
 import './Offers.css';
 
-const PRODUCTS = ['WallVex Pro', 'Chromvex', 'Primvex', 'All Products'];
-
 const EMPTY_FORM = {
-  title: '', product: PRODUCTS[0], discount_pct: '',
+  title: '', product: 'All Products', discount_pct: '',
   valid_from: '', valid_to: '', notes: '', status: 'active',
 };
 
@@ -15,6 +13,7 @@ export default function Offers() {
   const [sidebarOpen, setSidebarOpen]   = useState(false);
   const [offers, setOffers]             = useState([]);
   const [dealers, setDealers]           = useState([]);
+  const [packSizes, setPackSizes]       = useState([]);
   const [loading, setLoading]           = useState(true);
   const [saving, setSaving]             = useState(false);
   const [showModal, setShowModal]       = useState(false);
@@ -30,12 +29,14 @@ export default function Offers() {
 
   async function fetchAll() {
     setLoading(true);
-    const [o, d] = await Promise.all([
+    const [o, d, ps] = await Promise.all([
       supabase.from('offers').select('*').order('created_at', { ascending: false }),
       supabase.from('dealers').select('id, name, location').eq('status', 'active').order('name'),
+      supabase.from('pack_sizes').select('product').order('product'),
     ]);
     setOffers(o.data  || []);
     setDealers(d.data || []);
+    setPackSizes(ps.data || []);
     setLoading(false);
   }
 
@@ -61,6 +62,7 @@ export default function Offers() {
   const activeCount   = offers.filter(o => getOfferStatus(o) === 'active').length;
   const expiredCount  = offers.filter(o => getOfferStatus(o) === 'expired').length;
   const upcomingCount = offers.filter(o => getOfferStatus(o) === 'upcoming').length;
+  const productOptions = [...new Set(packSizes.map(row => row.product).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
   function validate() {
     const e = {};
@@ -333,7 +335,8 @@ export default function Offers() {
                 <div className="modal-field">
                   <label>Product</label>
                   <select value={form.product} onChange={e => setForm({ ...form, product: e.target.value })}>
-                    {PRODUCTS.map(p => <option key={p}>{p}</option>)}
+                    <option>All Products</option>
+                    {productOptions.map(p => <option key={p}>{p}</option>)}
                   </select>
                 </div>
                 <div className="modal-field">

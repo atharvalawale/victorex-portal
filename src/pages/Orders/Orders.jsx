@@ -4,18 +4,17 @@ import Topbar from '../../components/Topbar/Topbar';
 import { supabase } from '../../lib/supabase';
 import './Orders.css';
 
-const PRODUCTS = ['WallVex Pro', 'Chromvex', 'Primvex'];
 const STATUS_OPTIONS = ['pending', 'processing', 'delivered', 'cancelled'];
 
 const STATUS_STYLE = {
-  pending:    { background: 'rgba(232,184,75,0.12)',  color: '#8a5a00' },
+  pending:    { background: 'rgba(233,146,104,0.12)',  color: '#126B64' },
   processing: { background: 'rgba(58,143,212,0.12)',  color: '#1a4a7a' },
   delivered:  { background: 'rgba(45,157,110,0.12)',  color: '#165c3a' },
   cancelled:  { background: 'rgba(216,90,48,0.12)',   color: '#7a2010' },
 };
 
 const EMPTY_ITEM = {
-  product: PRODUCTS[0], pack_size: '', unit: '', qty: '', rate: '',
+  product: '', pack_size: '', unit: '', qty: '', rate: '',
 };
 
 export default function Orders() {
@@ -57,6 +56,8 @@ export default function Orders() {
     setOrders(o.data        || []);
     setDealers(d.data       || []);
     setPackSizes(ps.data    || []);
+    const firstProduct = (ps.data || [])[0]?.product || '';
+    if (firstProduct) setItems(current => current[0]?.product ? current : [{ ...EMPTY_ITEM, product: firstProduct }]);
     setDealerPrices(dp.data || []);
     setPayments(p.data || []);
     setLoading(false);
@@ -70,6 +71,8 @@ export default function Orders() {
   function getSizesForProduct(product) {
     return packSizes.filter(ps => ps.product === product);
   }
+
+  const productOptions = [...new Set(packSizes.map(row => row.product).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
   function getAutoRate(dealer, product, pack_size, unit) {
     const price = dealerPrices.find(dp =>
@@ -102,10 +105,12 @@ export default function Orders() {
   }
 
   function addItem() {
-    const sizes = getSizesForProduct(PRODUCTS[0]);
+    const firstProduct = productOptions[0] || '';
+    const sizes = getSizesForProduct(firstProduct);
     const first = sizes[0] || null;
     setItems(prev => [...prev, {
       ...EMPTY_ITEM,
+      product: firstProduct,
       pack_size: first?.size || '',
       unit:      first?.unit || '',
     }]);
@@ -240,9 +245,10 @@ export default function Orders() {
     setLocation('');
     setNotes('');
     setOrderDate(new Date().toISOString().split('T')[0]);
-    const sizes = getSizesForProduct(PRODUCTS[0]);
+    const firstProduct = productOptions[0] || '';
+    const sizes = getSizesForProduct(firstProduct);
     const first = sizes[0] || null;
-    setItems([{ ...EMPTY_ITEM, pack_size: first?.size || '', unit: first?.unit || '' }]);
+    setItems([{ ...EMPTY_ITEM, product: firstProduct, pack_size: first?.size || '', unit: first?.unit || '' }]);
     setEditId(null);
     setErrors({});
   }
@@ -518,7 +524,7 @@ export default function Orders() {
                         value={item.product}
                         onChange={e => handleItemProductChange(index, e.target.value)}
                       >
-                        {PRODUCTS.map(p => <option key={p}>{p}</option>)}
+                        {productOptions.map(p => <option key={p}>{p}</option>)}
                       </select>
                     </div>
 
@@ -629,12 +635,12 @@ export default function Orders() {
               <div style={{ display:'flex', gap:20, marginBottom:16, fontSize:13 }}>
                 <div>
                   <div style={{ color:'#8A8FA3', fontSize:11, marginBottom:2 }}>DEALER</div>
-                  <div style={{ fontWeight:700, color:'#0B1F3A' }}>{viewOrder.dealer_name}</div>
+                  <div style={{ fontWeight:700, color:'#16353B' }}>{viewOrder.dealer_name}</div>
                   <div style={{ color:'#8A8FA3', fontSize:12 }}>{viewOrder.location}</div>
                 </div>
                 <div>
                   <div style={{ color:'#8A8FA3', fontSize:11, marginBottom:2 }}>DATE</div>
-                  <div style={{ fontWeight:600, color:'#0B1F3A' }}>{fmtDate(viewOrder.date)}</div>
+                  <div style={{ fontWeight:600, color:'#16353B' }}>{fmtDate(viewOrder.date)}</div>
                 </div>
                 <div>
                   <div style={{ color:'#8A8FA3', fontSize:11, marginBottom:2 }}>STATUS</div>
@@ -692,7 +698,7 @@ export default function Orders() {
                   ))}
                   <tr className="orders-view-total">
                     <td colSpan={5} style={{ textAlign:'right', fontWeight:700 }}>Total</td>
-                    <td><strong style={{ color:'#C9922A', fontSize:15 }}>{fmtAmt(viewOrder.total_amount || viewOrder.amount)}</strong></td>
+                    <td><strong style={{ color:'#17877C', fontSize:15 }}>{fmtAmt(viewOrder.total_amount || viewOrder.amount)}</strong></td>
                   </tr>
                 </tbody>
               </table>

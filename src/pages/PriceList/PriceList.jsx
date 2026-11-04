@@ -4,8 +4,6 @@ import Topbar from '../../components/Topbar/Topbar';
 import { supabase } from '../../lib/supabase';
 import './PriceList.css';
 
-const PRODUCTS = ['WallVex Pro', 'Chromvex', 'Primvex'];
-
 export default function PriceList() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dealers, setDealers]         = useState([]);
@@ -99,6 +97,8 @@ export default function PriceList() {
     return prices.filter(p => p.dealer_name === dealerName).length;
   }
 
+  const products = [...new Set(packSizes.map(row => row.product).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+
   return (
     <div className="pricelist-shell">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -182,13 +182,13 @@ export default function PriceList() {
                     Leave blank to use order-time manual entry. Fill in to auto-populate rate when placing orders.
                   </div>
 
-                  {PRODUCTS.map(product => {
+                  {products.map(product => {
                     const sizes = packSizes.filter(ps => ps.product === product);
                     return (
                       <div key={product} className="pricelist-product-section">
                         <div className="pricelist-product-title">
                           <div className="pricelist-product-dot" style={{
-                            background: product === 'WallVex Pro' ? '#C9922A' : product === 'Chromvex' ? '#0B1F3A' : '#E8B84B'
+                            background: ['#17877C', '#16353B', '#E99268', '#5277C3', '#7A5DA8', '#CF8C35'][products.indexOf(product) % 6]
                           }} />
                           {product}
                         </div>

@@ -4,7 +4,6 @@ import Topbar from '../../components/Topbar/Topbar';
 import { supabase } from '../../lib/supabase';
 import './CostCalc.css';
 
-const PRODUCTS = ['WallVex Pro', 'Chromvex', 'Primvex'];
 const UNITS = ['kg', 'ltr', 'g', 'ml', 'pieces', 'bags'];
 const EMPTY_ITEM = { material_name: '', qty: '', unit: UNITS[0], rate: '' };
 
@@ -16,7 +15,7 @@ export default function CostCalc() {
   const [toast, setToast]             = useState('');
 
   /* ── Calculator state ── */
-  const [product, setProduct]         = useState(PRODUCTS[0]);
+  const [product, setProduct]         = useState('');
   const [packSize, setPackSize]       = useState('');
   const [unit, setUnit]               = useState('');
   const [items, setItems]             = useState([{ ...EMPTY_ITEM }]);
@@ -35,13 +34,16 @@ export default function CostCalc() {
     setPackSizes(ps.data || []);
     setFormulas(f.data  || []);
 
-    const sizes = (ps.data || []).filter(p => p.product === PRODUCTS[0]);
+    const firstProduct = (ps.data || [])[0]?.product || '';
+    if (firstProduct) setProduct(current => current || firstProduct);
+    const sizes = (ps.data || []).filter(p => p.product === firstProduct);
     if (sizes[0]) { setPackSize(sizes[0].size); setUnit(sizes[0].unit); }
   }
 
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 3000); }
 
   function getSizesForProduct(p) { return packSizes.filter(ps => ps.product === p); }
+  const products = [...new Set(packSizes.map(row => row.product).filter(Boolean))].sort((a, b) => a.localeCompare(b));
 
   function handleProductChange(p) {
     setProduct(p);
@@ -159,7 +161,7 @@ export default function CostCalc() {
                   <div className="costcalc-field">
                     <label>Product</label>
                     <select value={product} onChange={e => handleProductChange(e.target.value)}>
-                      {PRODUCTS.map(p => <option key={p}>{p}</option>)}
+                      {products.map(p => <option key={p}>{p}</option>)}
                     </select>
                   </div>
                   <div className="costcalc-field">

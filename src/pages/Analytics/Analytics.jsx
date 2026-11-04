@@ -9,8 +9,7 @@ import { supabase } from '../../lib/supabase';
 import './Analytics.css';
 
 const MONTHS   = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-const PRODUCTS = ['WallVex Pro','Chromvex','Primvex'];
-const COLORS   = { 'WallVex Pro':'#C9922A', 'Chromvex':'#0B1F3A', 'Primvex':'#E8B84B' };
+const PALETTE = ['#17877C', '#16353B', '#E99268', '#5277C3', '#7A5DA8', '#CF8C35', '#398C63', '#C45D70'];
 
 const fmtRupee = (n) => {
   if (n >= 100000) return `₹${(n/100000).toFixed(1)}L`;
@@ -22,8 +21,8 @@ const fmtFull = (n) => `₹${Number(n||0).toLocaleString('en-IN')}`;
 function ChartTooltip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background:'#fff', border:'0.5px solid #E2E5EE', borderRadius:8, padding:'10px 14px', fontSize:12, boxShadow:'0 4px 16px rgba(11,31,58,0.08)' }}>
-      <div style={{ fontWeight:700, color:'#0B1F3A', marginBottom:6 }}>{label}</div>
+    <div style={{ background:'#fff', border:'0.5px solid #E2E5EE', borderRadius:8, padding:'10px 14px', fontSize:12, boxShadow:'0 4px 16px rgba(22,53,59,0.08)' }}>
+      <div style={{ fontWeight:700, color:'#16353B', marginBottom:6 }}>{label}</div>
       {payload.map((p) => (
         <div key={p.dataKey} style={{ color:p.color, fontWeight:600, marginBottom:2 }}>
           {p.name}: {fmtFull(p.value)}
@@ -42,7 +41,8 @@ export default function Analytics() {
   const [targets, setTargets]         = useState([]);
   const [range, setRange]             = useState('6m');
   const [showTargetModal, setShowTargetModal] = useState(false);
-  const [targetForm, setTargetForm]   = useState({ wallvex: '', chromvex: '', primvex: '' });
+  const [targetForm, setTargetForm]   = useState({});
+  const [catalogProducts, setCatalogProducts] = useState([]);
   const [savingTarget, setSavingTarget] = useState(false);
   const [toast, setToast]             = useState('');
 
@@ -50,18 +50,23 @@ export default function Analytics() {
 
   async function fetchAll() {
     setLoading(true);
-    const [o, p, d, t] = await Promise.all([
+    const [o, p, d, t, ps] = await Promise.all([
       supabase.from('orders').select('*').order('date'),
       supabase.from('payments').select('*').order('date'),
       supabase.from('dealers').select('*'),
       supabase.from('targets').select('*'),
+      supabase.from('pack_sizes').select('product').order('product'),
     ]);
     setOrders(o.data   || []);
     setPayments(p.data || []);
     setDealers(d.data  || []);
     setTargets(t.data  || []);
+    setCatalogProducts([...new Set((ps.data || []).map(row => row.product).filter(Boolean))]);
     setLoading(false);
   }
+
+  const products = [...new Set([...catalogProducts, ...orders.map(order => order.product), ...targets.map(target => target.product)].filter(Boolean))].sort((a, b) => a.localeCompare(b));
+  const productColor = product => PALETTE[Math.max(products.indexOf(product), 0) % PALETTE.length];
 
   function showToast(msg) {
     setToast(msg);
@@ -77,7 +82,7 @@ export default function Analytics() {
     const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
     const mo  = orders.filter(o => o.date?.startsWith(key));
     const row = { month: MONTHS[d.getMonth()], total: 0 };
-    PRODUCTS.forEach(p => {
+    products.forEach(p => {
       const amt = mo.filter(o => o.product === p).reduce((s,o) => s+Number(o.total_amount || o.amount || 0),0);
       row[p] = amt;
       row.total += amt;
@@ -86,10 +91,10 @@ export default function Analytics() {
   });
 
   /* ── Product share (pie) ── */
-  const productShare = PRODUCTS.map(p => ({
+  const productShare = products.map(p => ({
     name: p,
     value: orders.reduce((s,o) => o.product === p ? s+Number(o.total_amount || o.amount || 0) : s, 0),
-    color: COLORS[p],
+    color: productColor(p),
   })).filter(p => p.value > 0);
 
   /* ── Dealer ranking ── */
@@ -110,7 +115,7 @@ export default function Analytics() {
   const paymentBehavior = dealerRanking.map(d => {
     const pct   = d.revenue > 0 ? Math.round((d.paid / d.revenue) * 100) : 0;
     const score = pct >= 90 ? 'Excellent' : pct >= 70 ? 'Good' : pct >= 50 ? 'Average' : 'Poor';
-    const color = pct >= 90 ? '#2D9D6E' : pct >= 70 ? '#C9922A' : pct >= 50 ? '#E8B84B' : '#D85A30';
+    const color = pct >= 90 ? '#2D9D6E' : pct >= 70 ? '#17877C' : pct >= 50 ? '#E99268' : '#D85A30';
     return { ...d, pct, score, color };
   });
 
@@ -131,11 +136,7 @@ export default function Analytics() {
     const month = MONTHS[now.getMonth()];
     const year  = now.getFullYear();
 
-    const upserts = [
-      { product: 'WallVex Pro', target_amount: Number(targetForm.wallvex) || 0 },
-      { product: 'Chromvex',    target_amount: Number(targetForm.chromvex) || 0 },
-      { product: 'Primvex',     target_amount: Number(targetForm.primvex) || 0 },
-    ].map(t => ({ ...t, month, year }));
+    const upserts = products.map(product => ({ product, target_amount: Number(targetForm[product]) || 0, month, year }));
 
     for (const t of upserts) {
       const existing = targets.find(x => x.product === t.product && x.month === month && x.year === year);
@@ -157,7 +158,7 @@ export default function Analytics() {
     const month = MONTHS[now.getMonth()];
     const year  = now.getFullYear();
     const get   = (p) => targets.find(t => t.product === p && t.month === month && t.year === year)?.target_amount || '';
-    setTargetForm({ wallvex: get('WallVex Pro'), chromvex: get('Chromvex'), primvex: get('Primvex') });
+    setTargetForm(Object.fromEntries(products.map(product => [product, get(product)])));
     setShowTargetModal(true);
   }
 
@@ -165,10 +166,10 @@ export default function Analytics() {
   const thisMonth   = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const thisMonthOrders = orders.filter(o => o.date?.startsWith(thisMonth));
 
-  const targetVsAchieved = PRODUCTS.map(p => {
+  const targetVsAchieved = products.map(p => {
     const achieved = thisMonthOrders.filter(o => o.product === p).reduce((s,o) => s+Number(o.total_amount || o.amount || 0),0);
     const target   = targets.find(t => t.product === p && t.month === MONTHS[now.getMonth()] && t.year === now.getFullYear())?.target_amount || 0;
-    return { product: p, target: Number(target), achieved, color: COLORS[p] };
+    return { product: p, target: Number(target), achieved, color: productColor(p) };
   });
 
   const hasTargets = targetVsAchieved.some(t => t.target > 0);
@@ -216,7 +217,7 @@ export default function Analytics() {
               {/* KPI Summary */}
               <div className="analytics-kpis">
                 <div className="analytics-kpi">
-                  <div className="analytics-kpi-icon" style={{ background:'rgba(201,146,42,0.1)', color:'#C9922A' }}>
+                  <div className="analytics-kpi-icon" style={{ background:'rgba(23,135,124,0.1)', color:'#17877C' }}>
                     <i className="ti ti-currency-rupee" />
                   </div>
                   <div>
@@ -252,7 +253,7 @@ export default function Analytics() {
                   </div>
                 </div>
                 <div className="analytics-kpi">
-                  <div className="analytics-kpi-icon" style={{ background:'rgba(11,31,58,0.08)', color:'#0B1F3A' }}>
+                  <div className="analytics-kpi-icon" style={{ background:'rgba(22,53,59,0.08)', color:'#16353B' }}>
                     <i className="ti ti-chart-bar" />
                   </div>
                   <div>
@@ -261,7 +262,7 @@ export default function Analytics() {
                   </div>
                 </div>
                 <div className="analytics-kpi">
-                  <div className="analytics-kpi-icon" style={{ background:'rgba(232,184,75,0.15)', color:'#8a5a00' }}>
+                  <div className="analytics-kpi-icon" style={{ background:'rgba(233,146,104,0.15)', color:'#126B64' }}>
                     <i className="ti ti-star" />
                   </div>
                   <div>
@@ -283,10 +284,10 @@ export default function Analytics() {
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={monthlyData} margin={{ top:4, right:4, left:0, bottom:0 }}>
                         <defs>
-                          {PRODUCTS.map((p,i) => (
+                          {products.map((p,i) => (
                             <linearGradient key={p} id={`g${i}`} x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%"  stopColor={COLORS[p]} stopOpacity={0.15} />
-                              <stop offset="95%" stopColor={COLORS[p]} stopOpacity={0} />
+                              <stop offset="5%"  stopColor={productColor(p)} stopOpacity={0.15} />
+                              <stop offset="95%" stopColor={productColor(p)} stopOpacity={0} />
                             </linearGradient>
                           ))}
                         </defs>
@@ -295,9 +296,9 @@ export default function Analytics() {
                         <YAxis tickFormatter={fmtRupee} tick={{ fontSize:11, fill:'#8A8FA3' }} axisLine={false} tickLine={false} width={52} />
                         <Tooltip content={<ChartTooltip />} />
                         <Legend wrapperStyle={{ fontSize:11, paddingTop:8 }} />
-                        {PRODUCTS.map((p,i) => (
+                        {products.map((p,i) => (
                           <Area key={p} type="monotone" dataKey={p} name={p}
-                            stroke={COLORS[p]} fill={`url(#g${i})`} strokeWidth={2} dot={false} />
+                            stroke={productColor(p)} fill={`url(#g${i})`} strokeWidth={2} dot={false} />
                         ))}
                       </AreaChart>
                     </ResponsiveContainer>
@@ -332,7 +333,7 @@ export default function Analytics() {
                               <div style={{ width:10, height:10, borderRadius:'50%', background:p.color }} />
                               <span style={{ fontSize:12, color:'#5A5F72' }}>{p.name}</span>
                             </div>
-                            <span style={{ fontSize:12, fontWeight:700, color:'#0B1F3A' }}>{fmtFull(p.value)}</span>
+                            <span style={{ fontSize:12, fontWeight:700, color:'#16353B' }}>{fmtFull(p.value)}</span>
                           </div>
                         ))}
                       </div>
@@ -360,7 +361,7 @@ export default function Analytics() {
                   <div className="analytics-target-rows">
                     {targetVsAchieved.map((t) => {
                       const pct = t.target > 0 ? Math.min(Math.round((t.achieved/t.target)*100), 100) : 0;
-                      const barColor = pct >= 80 ? '#2D9D6E' : pct >= 50 ? '#C9922A' : '#D85A30';
+                      const barColor = pct >= 80 ? '#2D9D6E' : pct >= 50 ? '#17877C' : '#D85A30';
                       return (
                         <div key={t.product} className="analytics-target-row">
                           <div className="analytics-target-meta">
@@ -369,7 +370,7 @@ export default function Analytics() {
                               <span className="analytics-target-name">{t.product}</span>
                             </div>
                             <div style={{ display:'flex', gap:16, fontSize:12 }}>
-                              <span style={{ color:'#8A8FA3' }}>Target: <strong style={{ color:'#0B1F3A' }}>{fmtFull(t.target)}</strong></span>
+                              <span style={{ color:'#8A8FA3' }}>Target: <strong style={{ color:'#16353B' }}>{fmtFull(t.target)}</strong></span>
                               <span style={{ color:'#8A8FA3' }}>Achieved: <strong style={{ color:barColor }}>{fmtFull(t.achieved)}</strong></span>
                               <span style={{ fontWeight:700, color:barColor }}>{pct}%</span>
                             </div>
@@ -401,8 +402,8 @@ export default function Analytics() {
                       <YAxis tickFormatter={fmtRupee} tick={{ fontSize:11, fill:'#8A8FA3' }} axisLine={false} tickLine={false} width={52} />
                       <Tooltip content={<ChartTooltip />} />
                       <Legend wrapperStyle={{ fontSize:11, paddingTop:8 }} />
-                      {PRODUCTS.map(p => (
-                        <Bar key={p} dataKey={p} name={p} fill={COLORS[p]} radius={[4,4,0,0]} maxBarSize={28} />
+                      {products.map(p => (
+                        <Bar key={p} dataKey={p} name={p} fill={productColor(p)} radius={[4,4,0,0]} maxBarSize={28} />
                       ))}
                     </BarChart>
                   </ResponsiveContainer>
@@ -427,7 +428,7 @@ export default function Analytics() {
                         <div className="analytics-dealer-loc">{d.location} · {d.orders} orders</div>
                       </div>
                       <div style={{ textAlign:'right' }}>
-                        <div style={{ fontSize:13, fontWeight:700, color:'#0B1F3A' }}>{fmtFull(d.revenue)}</div>
+                        <div style={{ fontSize:13, fontWeight:700, color:'#16353B' }}>{fmtFull(d.revenue)}</div>
                         {d.outstanding > 0 && (
                           <div style={{ fontSize:11, color:'#D85A30' }}>Due: {fmtFull(d.outstanding)}</div>
                         )}
@@ -480,24 +481,11 @@ export default function Analytics() {
               </button>
             </div>
             <form className="modal-form" onSubmit={handleSaveTargets}>
-              <div className="modal-field">
-                <label>WallVex Pro Target (₹)</label>
-                <input type="number" min="0" placeholder="e.g. 250000"
-                  value={targetForm.wallvex}
-                  onChange={e => setTargetForm({ ...targetForm, wallvex: e.target.value })} />
-              </div>
-              <div className="modal-field">
-                <label>Chromvex Target (₹)</label>
-                <input type="number" min="0" placeholder="e.g. 150000"
-                  value={targetForm.chromvex}
-                  onChange={e => setTargetForm({ ...targetForm, chromvex: e.target.value })} />
-              </div>
-              <div className="modal-field">
-                <label>Primvex Target (₹)</label>
-                <input type="number" min="0" placeholder="e.g. 100000"
-                  value={targetForm.primvex}
-                  onChange={e => setTargetForm({ ...targetForm, primvex: e.target.value })} />
-              </div>
+              {products.map(product => <div className="modal-field" key={product}>
+                <label>{product} Target (₹)</label>
+                <input type="number" min="0" placeholder="e.g. 250000" value={targetForm[product] || ''}
+                  onChange={e => setTargetForm({ ...targetForm, [product]: e.target.value })} />
+              </div>)}
               <div className="modal-footer">
                 <button type="button" className="modal-cancel" onClick={() => setShowTargetModal(false)}>Cancel</button>
                 <button type="submit" className="modal-submit" disabled={savingTarget}>

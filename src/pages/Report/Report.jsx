@@ -28,12 +28,13 @@ export default function Report() {
   async function generateReport() {
     setLoading(true);
 
-    const [ordersRes, paymentsRes, dealersRes, chequesRes, stockRes] = await Promise.all([
+    const [ordersRes, paymentsRes, dealersRes, chequesRes, stockRes, packSizesRes] = await Promise.all([
       supabase.from('orders').select('*').order('created_at', { ascending: false }),
       supabase.from('payments').select('*').order('created_at', { ascending: false }),
       supabase.from('dealers').select('*'),
       supabase.from('cheques').select('*').eq('status', 'pending').order('due_date'),
       supabase.from('stock').select('*'),
+      supabase.from('pack_sizes').select('product'),
     ]);
 
     const orders   = ordersRes.data   || [];
@@ -69,7 +70,7 @@ export default function Report() {
     const lowStock = stock.filter(s => s.quantity <= s.reorder_level);
 
     /* ── Product breakdown today ── */
-    const products = ['WallVex Pro', 'Chromvex', 'Primvex'];
+    const products = [...new Set([...(packSizesRes.data || []).map(row => row.product), ...orders.map(order => order.product)].filter(Boolean))].sort((a, b) => a.localeCompare(b));
     const todayByProduct = products.map(p => ({
       name: p,
       orders: todayOrders.filter(o => o.product === p).length,
