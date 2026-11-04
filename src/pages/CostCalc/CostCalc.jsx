@@ -17,11 +17,13 @@ export default function CostCalc() {
   /* ── Calculator state ── */
   const [product, setProduct]         = useState('');
   const [packSize, setPackSize]       = useState('');
+  const [yieldQuantity, setYieldQuantity] = useState('');
   const [unit, setUnit]               = useState('');
   const [items, setItems]             = useState([{ ...EMPTY_ITEM }]);
   const [labourCost, setLabourCost]   = useState('');
   const [overheadCost, setOverheadCost] = useState('');
   const [marginPct, setMarginPct]     = useState('20');
+  const [calculatedMarginKey, setCalculatedMarginKey] = useState('');
   const [savedFormulaId, setSavedFormulaId] = useState(null);
 
   useEffect(() => { fetchAll(); }, []);
@@ -37,7 +39,7 @@ export default function CostCalc() {
     const firstProduct = (ps.data || [])[0]?.product || '';
     if (firstProduct) setProduct(current => current || firstProduct);
     const sizes = (ps.data || []).filter(p => p.product === firstProduct);
-    if (sizes[0]) { setPackSize(sizes[0].size); setUnit(sizes[0].unit); }
+    if (sizes[0]) { setPackSize(sizes[0].size); setYieldQuantity(String(sizes[0].size)); setUnit(sizes[0].unit); }
   }
 
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 3000); }
@@ -48,8 +50,8 @@ export default function CostCalc() {
   function handleProductChange(p) {
     setProduct(p);
     const sizes = getSizesForProduct(p);
-    if (sizes[0]) { setPackSize(sizes[0].size); setUnit(sizes[0].unit); }
-    else { setPackSize(''); setUnit(''); }
+    if (sizes[0]) { setPackSize(sizes[0].size); setYieldQuantity(String(sizes[0].size)); setUnit(sizes[0].unit); }
+    else { setPackSize(''); setYieldQuantity(''); setUnit(''); }
     setSavedFormulaId(null);
     setItems([{ ...EMPTY_ITEM }]);
     setLabourCost(''); setOverheadCost(''); setMarginPct('20');
@@ -58,11 +60,13 @@ export default function CostCalc() {
   function handleSizeChange(sizeStr) {
     const [size, u] = sizeStr.split('__');
     setPackSize(size); setUnit(u);
+    setYieldQuantity(size);
     loadFormula(product, size, u);
   }
 
   function loadFormula(p, ps, u) {
     const formula = formulas.find(f => f.product === p && f.pack_size === ps && f.unit === u);
+    setYieldQuantity(String(formula?.yield_quantity || ps || ''));
     if (formula) {
       setSavedFormulaId(formula.id);
       setLabourCost(String(formula.labour_cost || ''));
@@ -91,7 +95,9 @@ export default function CostCalc() {
   const totalCostBefore = rawMaterialCost + labour + overhead;
   const marginAmt       = totalCostBefore * margin / 100;
   const finalPrice      = totalCostBefore + marginAmt;
-  const costPerUnit     = packSize ? finalPrice / Number(packSize) : 0;
+  const costPerUnit     = Number(yieldQuantity) > 0 ? totalCostBefore / Number(yieldQuantity) : 0;
+  const marginCalculationKey = JSON.stringify({ product, totalCostBefore, packSize, yieldQuantity, unit, margin });
+  const marginIsCalculated = calculatedMarginKey === marginCalculationKey;
 
   /* ── Save formula ── */
   async function handleSaveFormula() {
@@ -100,6 +106,7 @@ export default function CostCalc() {
 
     const payload = {
       product, pack_size: packSize, unit,
+      yield_quantity: Number(yieldQuantity || packSize),
       labour_cost: labour, overhead_cost: overhead,
       margin_pct: margin, updated_at: new Date().toISOString(),
     };
@@ -145,7 +152,7 @@ export default function CostCalc() {
           <div className="costcalc-header">
             <div>
               <h2 className="costcalc-title">Cost Calculator</h2>
-              <p className="costcalc-sub">Calculate cost per bucket and save formulas per product</p>
+              <p className="costcalc-sub">Enter the total quantity made from these costs. Margin is kept separate from production cost.</p>
             </div>
           </div>
 
@@ -173,6 +180,10 @@ export default function CostCalc() {
                       ))}
                     </select>
                   </div>
+                </div>
+                <div className="costcalc-field costcalc-yield-field">
+                  <label>Total quantity produced by these costs ({unit || 'unit'})</label>
+                  <input type="number" min="0.01" step="any" value={yieldQuantity} onChange={e => setYieldQuantity(e.target.value)} placeholder="For example, 820.36" />
                 </div>
                 {savedFormulaId && (
                   <div className="costcalc-saved-note">
@@ -242,13 +253,16 @@ export default function CostCalc() {
                     </div>
                   </div>
                   <div className="costcalc-field">
-                    <label>Margin %</label>
+                    <label>Optional margin %</label>
                     <div className="costcalc-input-wrap">
                       <input type="number" min="0" max="100" placeholder="20" value={marginPct} onChange={e => setMarginPct(e.target.value)} />
                       <span className="costcalc-suffix">%</span>
                     </div>
                   </div>
                 </div>
+                <button type="button" className="costcalc-margin-btn" onClick={() => setCalculatedMarginKey(marginCalculationKey)}>
+                  <i className="ti ti-calculator" /> Calculate selling price with margin
+                </button>
               </div>
 
               <button className="costcalc-save-btn" onClick={handleSaveFormula} disabled={saving}>
@@ -279,24 +293,21 @@ export default function CostCalc() {
                     <span>{fmtAmt(overhead)}</span>
                   </div>
                   <div className="costcalc-breakdown-row subtotal">
-                    <span>Cost Before Margin</span>
+                    <span>Total Production Cost</span>
                     <span>{fmtAmt(totalCostBefore)}</span>
                   </div>
-                  <div className="costcalc-breakdown-row">
-                    <span>Margin ({margin}%)</span>
-                    <span>{fmtAmt(marginAmt)}</span>
-                  </div>
+                  {marginIsCalculated && <div className="costcalc-breakdown-row"><span>Added margin ({margin}%)</span><span>{fmtAmt(marginAmt)}</span></div>}
                 </div>
 
                 <div className="costcalc-final">
-                  <div className="costcalc-final-label">Selling Price</div>
-                  <div className="costcalc-final-val">{fmtAmt(finalPrice)}</div>
-                  <div className="costcalc-final-sub">per {packSize} {unit} bucket</div>
+                  <div className="costcalc-final-label">{marginIsCalculated ? 'Selling Price with margin' : 'Production cost before margin'}</div>
+                  <div className="costcalc-final-val">{fmtAmt(marginIsCalculated ? finalPrice : totalCostBefore)}</div>
+                  <div className="costcalc-final-sub">total for {yieldQuantity || 0} {unit} produced</div>
                 </div>
 
                 {packSize && Number(packSize) > 1 && (
                   <div className="costcalc-per-unit">
-                    <div className="costcalc-per-unit-label">Cost per 1 {unit}</div>
+                    <div className="costcalc-per-unit-label">Production cost per 1 {unit} (no margin)</div>
                     <div className="costcalc-per-unit-val">{fmtAmt(costPerUnit)}</div>
                   </div>
                 )}
@@ -311,7 +322,8 @@ export default function CostCalc() {
                         className={`costcalc-saved-row${savedFormulaId === f.id ? ' active' : ''}`}
                         onClick={() => {
                           setProduct(f.product);
-                          setPackSize(f.pack_size);
+                    setPackSize(f.pack_size);
+                    setYieldQuantity(String(f.yield_quantity || f.pack_size || ''));
                           setUnit(f.unit);
                           setSavedFormulaId(f.id);
                           setLabourCost(String(f.labour_cost || ''));
@@ -330,8 +342,7 @@ export default function CostCalc() {
                         <div className="costcalc-saved-price">
                           {fmtAmt(
                             (f.cost_formula_items || []).reduce((s, i) => s + i.amount, 0) +
-                            Number(f.labour_cost || 0) + Number(f.overhead_cost || 0) +
-                            ((f.cost_formula_items || []).reduce((s, i) => s + i.amount, 0) + Number(f.labour_cost || 0) + Number(f.overhead_cost || 0)) * Number(f.margin_pct || 0) / 100
+                            Number(f.labour_cost || 0) + Number(f.overhead_cost || 0)
                           )}
                         </div>
                       </div>
