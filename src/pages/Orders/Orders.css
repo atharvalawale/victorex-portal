@@ -28,7 +28,7 @@
 .orders-title {
   font-size: 20px;
   font-weight: 700;
-  color: #0B1F3A;
+  color: #16353B;
   letter-spacing: -0.3px;
   margin-bottom: 3px;
 }
@@ -39,12 +39,14 @@
 }
 
 .orders-add-btn {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: 7px;
   height: 40px;
   padding: 0 18px;
-  background: #0B1F3A;
+  background: #16353B;
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -55,8 +57,8 @@
   white-space: nowrap;
 }
 
-.orders-add-btn i { font-size: 16px; color: #C9922A; }
-.orders-add-btn:hover { background: #132D52; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(11,31,58,0.12); }
+.orders-add-btn i { font-size: 16px; color: #17877C; }
+.orders-add-btn:hover { background: #1D4E55; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(22,53,59,0.12); }
 
 .orders-filters {
   display: flex;
@@ -90,14 +92,14 @@
   padding: 0 12px 0 36px;
   font-size: 13px;
   background: #fff;
-  color: #0B1F3A;
+  color: #16353B;
   transition: all 0.18s ease;
 }
 
 .orders-search:focus {
-  border-color: #C9922A;
+  border-color: #17877C;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(201,146,42,0.12);
+  box-shadow: 0 0 0 3px rgba(23,135,124,0.12);
 }
 
 .orders-status-filters {
@@ -119,8 +121,8 @@
   transition: all 0.18s ease;
 }
 
-.orders-filter-btn:hover { border-color: #0B1F3A; color: #0B1F3A; }
-.orders-filter-btn.active { background: #0B1F3A; color: #fff; border-color: #0B1F3A; }
+.orders-filter-btn:hover { border-color: #16353B; color: #16353B; }
+.orders-filter-btn.active { background: #16353B; color: #fff; border-color: #16353B; }
 
 .orders-table-wrap {
   background: #fff;
@@ -151,7 +153,7 @@
 .orders-table td {
   padding: 12px 16px;
   border-bottom: 0.5px solid #F4F5F9;
-  color: #0B1F3A;
+  color: #16353B;
   vertical-align: middle;
 }
 
@@ -167,7 +169,7 @@
   border-radius: 6px;
 }
 
-.orders-dealer-name { font-weight: 600; color: #0B1F3A; }
+.orders-dealer-name { font-weight: 600; color: #16353B; }
 .orders-dealer-loc  { font-size: 11px; color: #8A8FA3; }
 .orders-date        { font-size: 12px; color: #8A8FA3; white-space: nowrap; }
 
@@ -201,7 +203,7 @@
 .orders-payment-summary.paid { background: #F0FAF5; border-color: #D4EDE0; }
 .orders-payment-summary.part-paid { background: #FFFAEE; border-color: #F2E5C2; }
 .orders-payment-summary-title { display: block; margin-bottom: 4px; color: #667386; font-size: 11px; font-weight: 600; }
-.orders-payment-summary strong { color: #0B1F3A; font-size: 16px; }
+.orders-payment-summary strong { color: #16353B; font-size: 16px; }
 .orders-payment-summary strong small { color: #7B8797; font-size: 12px; font-weight: 500; }
 .orders-payment-summary-right { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
 .orders-payment-summary-right > small { color: #667386; font-size: 11px; }
@@ -215,7 +217,7 @@
   cursor: pointer;
   outline: none;
   appearance: none;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
 }
 
 .orders-actions { display: flex; gap: 6px; }
@@ -250,7 +252,7 @@
   display: block;
   margin-bottom: 10px;
   opacity: 0.3;
-  color: #0B1F3A;
+  color: #16353B;
 }
 
 .orders-loading {
@@ -267,7 +269,7 @@
   width: 20px;
   height: 20px;
   border: 2px solid #E2E5EE;
-  border-top-color: #C9922A;
+  border-top-color: #17877C;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
   display: inline-block;
@@ -281,7 +283,7 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(11,31,58,0.45);
+  background: rgba(22,53,59,0.45);
   z-index: 200;
   display: flex;
   align-items: center;
@@ -290,6 +292,11 @@
   animation: fadeIn 0.18s ease;
 }
 
+.orders-modal-overlay { z-index: 1000; pointer-events: auto; }
+.orders-modal-card { max-height: 90vh; overflow-y: auto; overscroll-behavior: contain; }
+.orders-modal-card .modal-footer { position: sticky; bottom: 0; z-index: 3; background: #fff; }
+.orders-modal-card .modal-submit { position: relative; z-index: 4; pointer-events: auto; }
+
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .modal-card {
@@ -297,7 +304,7 @@
   border-radius: 20px;
   width: 100%;
   max-width: 540px;
-  box-shadow: 0 8px 32px rgba(11,31,58,0.12);
+  box-shadow: 0 8px 32px rgba(22,53,59,0.12);
   animation: slideUp 0.22s ease;
 }
 
@@ -316,7 +323,7 @@
   border-bottom: 0.5px solid #E2E5EE;
 }
 
-.modal-title { font-size: 16px; font-weight: 700; color: #0B1F3A; }
+.modal-title { font-size: 16px; font-weight: 700; color: #16353B; }
 
 .modal-close {
   width: 30px; height: 30px;
@@ -328,7 +335,7 @@
   transition: all 0.18s ease;
 }
 
-.modal-close:hover { background: #F4F5F9; color: #0B1F3A; }
+.modal-close:hover { background: #F4F5F9; color: #16353B; }
 
 .modal-form { padding: 18px 20px 0; }
 
@@ -360,10 +367,10 @@
   border-radius: 10px;
   padding: 0 12px;
   font-size: 13px;
-  color: #0B1F3A;
+  color: #16353B;
   background: #F8F9FC;
   transition: all 0.18s ease;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
 }
 
 .modal-field textarea {
@@ -376,8 +383,8 @@
 .modal-field select:focus,
 .modal-field textarea:focus {
   outline: none;
-  border-color: #C9922A;
-  box-shadow: 0 0 0 3px rgba(201,146,42,0.12);
+  border-color: #17877C;
+  box-shadow: 0 0 0 3px rgba(23,135,124,0.12);
   background: #fff;
 }
 
@@ -410,16 +417,16 @@
   height: 38px; padding: 0 20px;
   border-radius: 10px;
   border: none;
-  background: #0B1F3A;
+  background: #16353B;
   color: #fff;
   font-size: 13px; font-weight: 600;
   cursor: pointer; transition: all 0.18s ease;
   display: flex; align-items: center; gap: 6px;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
 }
 
-.modal-submit i { color: #C9922A; font-size: 15px; }
-.modal-submit:hover { background: #132D52; }
+.modal-submit i { color: #17877C; font-size: 15px; }
+.modal-submit:hover { background: #1D4E55; }
 .modal-submit:disabled { opacity: 0.7; cursor: not-allowed; }
 
 .modal-delete {
@@ -429,7 +436,7 @@
   font-size: 13px; font-weight: 600;
   cursor: pointer; transition: all 0.18s ease;
   display: flex; align-items: center; gap: 6px;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
 }
 
 .modal-delete:hover { opacity: 0.9; }
@@ -439,7 +446,7 @@
   position: fixed;
   bottom: 24px;
   right: 24px;
-  background: #0B1F3A;
+  background: #16353B;
   color: #fff;
   padding: 12px 20px;
   border-radius: 10px;
@@ -448,12 +455,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 8px 32px rgba(11,31,58,0.2);
+  box-shadow: 0 8px 32px rgba(22,53,59,0.2);
   z-index: 999;
   animation: slideUp 0.22s ease;
 }
 
-.orders-toast i { color: #C9922A; font-size: 16px; }
+.orders-toast i { color: #17877C; font-size: 16px; }
 
 @media (max-width: 768px) {
   .orders-main { margin-left: 0; }
@@ -462,35 +469,35 @@
 }
 .orders-pack-badge {
   font-size: 11px; font-weight: 600;
-  background: rgba(11,31,58,0.07);
-  color: #0B1F3A; padding: 2px 8px;
+  background: rgba(22,53,59,0.07);
+  color: #16353B; padding: 2px 8px;
   border-radius: 9999px;
 }
 
 .orders-amount-preview {
   display: flex; justify-content: space-between;
   align-items: center; padding: 10px 14px;
-  background: rgba(201,146,42,0.08);
+  background: rgba(23,135,124,0.08);
   border-radius: 8px; margin-bottom: 14px;
-  font-size: 13px; color: #8a5a00;
+  font-size: 13px; color: #126B64;
 }
 
 .orders-amount-preview strong {
-  font-size: 15px; font-weight: 800; color: #C9922A;
+  font-size: 15px; font-weight: 800; color: #17877C;
 }
 
 .modal-field textarea {
   height: auto; padding: 10px 12px;
   border: 0.5px solid #E2E5EE; border-radius: 10px;
-  font-size: 13px; color: #0B1F3A;
+  font-size: 13px; color: #16353B;
   background: #F8F9FC; resize: none;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
   transition: all 0.18s ease; width: 100%;
 }
 
 .modal-field textarea:focus {
-  outline: none; border-color: #C9922A;
-  box-shadow: 0 0 0 3px rgba(201,146,42,0.12);
+  outline: none; border-color: #17877C;
+  box-shadow: 0 0 0 3px rgba(23,135,124,0.12);
   background: #fff;
 }
 /* Multi-item order styles */
@@ -511,22 +518,22 @@
 
 .orders-items-title {
   font-size: 12px; font-weight: 700;
-  color: #0B1F3A; text-transform: uppercase;
+  color: #16353B; text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .orders-add-item-btn {
   display: flex; align-items: center; gap: 5px;
   height: 28px; padding: 0 12px;
-  background: #0B1F3A; color: #fff;
+  background: #16353B; color: #fff;
   border: none; border-radius: 7px;
   font-size: 11px; font-weight: 600;
   cursor: pointer; transition: all 0.18s ease;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-body);
 }
 
-.orders-add-item-btn i { color: #C9922A; font-size: 13px; }
-.orders-add-item-btn:hover { background: #132D52; }
+.orders-add-item-btn i { color: #17877C; font-size: 13px; }
+.orders-add-item-btn:hover { background: #1D4E55; }
 
 .orders-item-header {
   display: grid;
@@ -558,15 +565,15 @@
   width: 100%; height: 34px;
   border: 0.5px solid #E2E5EE; border-radius: 8px;
   padding: 0 8px; font-size: 12px;
-  color: #0B1F3A; background: #F8F9FC;
-  font-family: 'Outfit', sans-serif;
+  color: #16353B; background: #F8F9FC;
+  font-family: var(--font-body);
   transition: all 0.18s ease;
 }
 
 .orders-item-field select:focus,
 .orders-item-field input:focus {
-  outline: none; border-color: #C9922A;
-  box-shadow: 0 0 0 3px rgba(201,146,42,0.12);
+  outline: none; border-color: #17877C;
+  box-shadow: 0 0 0 3px rgba(23,135,124,0.12);
   background: #fff;
 }
 
@@ -581,7 +588,7 @@
 
 .orders-item-amount {
   font-size: 12px; font-weight: 700;
-  color: #0B1F3A; text-align: right;
+  color: #16353B; text-align: right;
 }
 
 .orders-remove-item-btn {
@@ -602,13 +609,13 @@
 .orders-items-total {
   display: flex; justify-content: space-between;
   align-items: center; padding: 10px 14px;
-  background: rgba(201,146,42,0.06);
+  background: rgba(23,135,124,0.06);
   border-top: 0.5px solid #E2E5EE;
-  font-size: 13px; color: #8a5a00;
+  font-size: 13px; color: #126B64;
 }
 
 .orders-items-total strong {
-  font-size: 16px; font-weight: 800; color: #C9922A;
+  font-size: 16px; font-weight: 800; color: #17877C;
 }
 
 .modal-xl { max-width: 720px; }
@@ -623,14 +630,14 @@
 }
 
 .orders-view-table th {
-  padding: 8px 12px; background: #0B1F3A; color: #fff;
+  padding: 8px 12px; background: #16353B; color: #fff;
   font-size: 11px; font-weight: 600; text-align: left;
 }
 
 .orders-view-table td {
   padding: 10px 12px;
   border-bottom: 0.5px solid #F4F5F9;
-  color: #0B1F3A; vertical-align: middle;
+  color: #16353B; vertical-align: middle;
 }
 
 .orders-view-table tbody tr:last-child td { border-bottom: none; }
@@ -642,8 +649,8 @@
 }
 
 .orders-action-btn.view:hover {
-  background: rgba(201,146,42,0.1);
-  border-color: #C9922A; color: #C9922A;
+  background: rgba(23,135,124,0.1);
+  border-color: #17877C; color: #17877C;
 }
 
 .status-badge {

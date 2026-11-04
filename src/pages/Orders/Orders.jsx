@@ -171,7 +171,7 @@ export default function Orders() {
     const total = items.reduce((s, item) => s + Number(item.qty) * Number(item.rate), 0);
 
     if (editId) {
-      await supabase.from('orders').update({
+      const { error: orderError } = await supabase.from('orders').update({
         dealer_name:   dealerName,
         location,
         notes,
@@ -184,9 +184,14 @@ export default function Orders() {
         rate:          Number(items[0].rate),
         amount:        Number(items[0].qty) * Number(items[0].rate),
       }).eq('id', editId);
+      if (orderError) {
+        setSaving(false);
+        showToast(`Could not update order: ${orderError.message}`);
+        return;
+      }
 
       await supabase.from('order_items').delete().eq('order_id', editId);
-      await supabase.from('order_items').insert(
+      const { error: itemsError } = await supabase.from('order_items').insert(
         items.map(item => ({
           order_id:  editId,
           product:   item.product,
@@ -197,11 +202,16 @@ export default function Orders() {
           amount:    Number(item.qty) * Number(item.rate),
         }))
       );
+      if (itemsError) {
+        setSaving(false);
+        showToast(`Order saved, but items could not be saved: ${itemsError.message}`);
+        return;
+      }
 
       showToast('Order updated ✓');
     } else {
       const orderNumber = `ORD-${String(orders.length + 1).padStart(3, '0')}`;
-      const { data: newOrder } = await supabase.from('orders').insert({
+      const { data: newOrder, error: orderError } = await supabase.from('orders').insert({
         order_number:  orderNumber,
         dealer_name:   dealerName,
         location,
@@ -217,8 +227,14 @@ export default function Orders() {
         amount:        Number(items[0].qty) * Number(items[0].rate),
       }).select().single();
 
+      if (orderError || !newOrder) {
+        setSaving(false);
+        showToast(`Could not place order: ${orderError?.message || 'Order was not created'}`);
+        return;
+      }
+
       if (newOrder) {
-        await supabase.from('order_items').insert(
+        const { error: itemsError } = await supabase.from('order_items').insert(
           items.map(item => ({
             order_id:  newOrder.id,
             product:   item.product,
@@ -229,6 +245,11 @@ export default function Orders() {
             amount:    Number(item.qty) * Number(item.rate),
           }))
         );
+        if (itemsError) {
+          setSaving(false);
+          showToast(`Order created, but its items could not be saved: ${itemsError.message}`);
+          return;
+        }
       }
 
       showToast('Order placed ✓');
@@ -342,7 +363,7 @@ export default function Orders() {
                 {loading ? 'Loading...' : `${filtered.length} orders · Total ${fmtAmt(totalAmt)}`}
               </p>
             </div>
-            <button className="orders-add-btn" onClick={() => { resetForm(); setShowModal(true); }}>
+            <button type="button" className="orders-add-btn" onClick={() => { resetForm(); setShowModal(true); }}>
               <i className="ti ti-plus" /> New Order
             </button>
           </div>
@@ -460,8 +481,8 @@ export default function Orders() {
 
       {/* New/Edit Order Modal */}
       {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-card modal-xl" onClick={e => e.stopPropagation()}>
+        <div className="modal-overlay orders-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-card modal-xl orders-modal-card" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3 className="modal-title">{editId ? 'Edit Order' : 'New Order'}</h3>
               <button className="modal-close" onClick={() => setShowModal(false)}>
