@@ -7,7 +7,8 @@ import './BatchCosting.css';
 const OWNER_EMAIL = 'atharvalawale383@gmail.com';
 const today = () => new Date().toISOString().slice(0, 10);
 const emptyLine = () => ({ name: '', amount: '' });
-const emptyForm = () => ({ product: '', batch_reference: '', batch_date: today(), quantity_produced: '', quantity_sold: '', unit: 'kg', selling_price_per_unit: '', transport_cost: '', electricity_cost: '', notes: '', materials: [emptyLine()], labour: [emptyLine()], other_expenses: [emptyLine()] });
+const emptyMaterial = () => ({ name: '', quantity: '', unit: 'kg', unit_price: '' });
+const emptyForm = () => ({ product: '', batch_reference: '', batch_date: today(), quantity_produced: '', quantity_sold: '', unit: 'kg', selling_price_per_unit: '', transport_cost: '', electricity_cost: '', notes: '', materials: [emptyMaterial()], labour: [emptyLine()], other_expenses: [emptyLine()] });
 const money = value => `₹${Number(value || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
 
 export default function BatchCosting() {
@@ -53,7 +54,8 @@ export default function BatchCosting() {
     setLoading(false);
   }
 
-  const lineTotal = lines => lines.reduce((sum, line) => sum + Number(line.amount || 0), 0);
+  const lineAmount = line => line.amount != null ? Number(line.amount || 0) : Number(line.quantity || 0) * Number(line.unit_price || 0);
+  const lineTotal = lines => lines.reduce((sum, line) => sum + lineAmount(line), 0);
   const materialTotal = lineTotal(form.materials);
   const labourTotal = lineTotal(form.labour);
   const otherTotal = lineTotal(form.other_expenses);
@@ -73,7 +75,7 @@ export default function BatchCosting() {
   }
 
   function addLine(group) {
-    setForm(current => ({ ...current, [group]: [...current[group], emptyLine()] }));
+    setForm(current => ({ ...current, [group]: [...current[group], group === 'materials' ? emptyMaterial() : emptyLine()] }));
   }
 
   function removeLine(group, index) {
@@ -85,6 +87,7 @@ export default function BatchCosting() {
     if (auth !== 'allowed') return;
     if (!form.product || quantity <= 0) { setNotice('Choose a product and enter the quantity produced.'); return; }
     if (quantitySold > quantity) { setNotice('Quantity sold cannot be greater than quantity produced.'); return; }
+    if (form.materials.some(line => line.name.trim() && (!Number(line.quantity) || line.unit_price === '' || Number(line.unit_price) < 0))) { setNotice('Enter a valid quantity and price for every raw material.'); return; }
     setSaving(true);
     setNotice('');
     const payload = {
@@ -95,7 +98,7 @@ export default function BatchCosting() {
       quantity_sold: quantitySold,
       unit: form.unit,
       selling_price_per_unit: Number(form.selling_price_per_unit || 0),
-      materials: form.materials.filter(line => line.name.trim()).map(line => ({ name: line.name.trim(), amount: Number(line.amount || 0) })),
+      materials: form.materials.filter(line => line.name.trim()).map(line => ({ name: line.name.trim(), quantity: Number(line.quantity || 0), unit: line.unit, unit_price: Number(line.unit_price || 0), amount: Number(line.quantity || 0) * Number(line.unit_price || 0) })),
       labour: form.labour.filter(line => line.name.trim()).map(line => ({ name: line.name.trim(), amount: Number(line.amount || 0) })),
       other_expenses: form.other_expenses.filter(line => line.name.trim()).map(line => ({ name: line.name.trim(), amount: Number(line.amount || 0) })),
       transport_cost: Number(form.transport_cost || 0),
@@ -147,7 +150,7 @@ export default function BatchCosting() {
             {activeStep === 1 ? (
               <>
                 <div className="batch-cost-columns batch-material-step">
-                  <CostLines title="Raw materials" lines={form.materials} onAdd={() => addLine('materials')} onChange={(i, field, value) => editLine('materials', i, field, value)} onRemove={i => removeLine('materials', i)} total={materialTotal} />
+                  <MaterialLines lines={form.materials} onAdd={() => addLine('materials')} onChange={(i, field, value) => editLine('materials', i, field, value)} onRemove={i => removeLine('materials', i)} total={materialTotal} />
                 </div>
                 <div className="batch-summary batch-raw-summary">
                   <Summary label="Raw material total" value={money(materialTotal)} />
@@ -208,6 +211,30 @@ export default function BatchCosting() {
 
 function Summary({ label, value, note, positive }) {
   return <div className={`batch-summary-card${positive === undefined ? '' : positive ? ' is-positive' : ' is-negative'}`}><span>{label}</span><strong>{value}</strong>{note && <small>{note}</small>}</div>;
+}
+
+function MaterialLines({ lines, onAdd, onChange, onRemove, total }) {
+  return (
+    <section className="batch-cost-card batch-material-card">
+      <header><h3>Raw materials</h3><strong>{money(total)}</strong></header>
+      <div className="batch-material-head"><span>Material</span><span>Qty</span><span>Unit</span><span>Rate (₹)</span><span>Amount</span><span /></div>
+      {lines.map((line, index) => {
+        const amount = Number(line.quantity || 0) * Number(line.unit_price || 0);
+        return (
+          <div className="batch-material-line" key={index}>
+            <input aria-label={`Raw material ${index + 1}`} value={line.name} onChange={e => onChange(index, 'name', e.target.value)} placeholder="Material name" />
+            <input aria-label={`Quantity ${index + 1}`} type="number" min="0" step="any" value={line.quantity} onChange={e => onChange(index, 'quantity', e.target.value)} placeholder="Qty" />
+            <select aria-label={`Unit ${index + 1}`} value={line.unit} onChange={e => onChange(index, 'unit', e.target.value)}>{['kg', 'ltr', 'g', 'ml', 'pieces', 'bags'].map(unit => <option key={unit}>{unit}</option>)}</select>
+            <input aria-label={`Rate per unit ${index + 1}`} type="number" min="0" step="any" value={line.unit_price} onChange={e => onChange(index, 'unit_price', e.target.value)} placeholder="Rate" />
+            <strong>{money(amount)}</strong>
+            {lines.length > 1 ? <button type="button" onClick={() => onRemove(index)} aria-label="Remove material"><i className="ti ti-x" /></button> : <span />}
+          </div>
+        );
+      })}
+      <button className="batch-add-line" type="button" onClick={onAdd}><i className="ti ti-plus" /> Add material</button>
+      <p className="batch-material-hint">Each amount is calculated as quantity × rate. The total is divided by finished batch quantity for raw-material cost per unit.</p>
+    </section>
+  );
 }
 
 function CostLines({ title, lines, onAdd, onChange, onRemove, total, namePlaceholder = 'Material name' }) {
