@@ -18,6 +18,7 @@ export default function BatchCosting() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [activeStep, setActiveStep] = useState(1);
   const [calculatedSnapshot, setCalculatedSnapshot] = useState(null);
   const [notice, setNotice] = useState('');
 
@@ -59,6 +60,7 @@ export default function BatchCosting() {
   const totalCost = materialTotal + labourTotal + otherTotal + Number(form.transport_cost || 0) + Number(form.electricity_cost || 0);
   const quantity = Number(form.quantity_produced || 0);
   const quantitySold = Number(form.quantity_sold || 0);
+  const rawMaterialCostPerUnit = quantity > 0 ? materialTotal / quantity : 0;
   const unitCost = quantity > 0 ? totalCost / quantity : 0;
   const revenue = quantitySold * Number(form.selling_price_per_unit || 0);
   const soldProductCost = unitCost * quantitySold;
@@ -82,6 +84,7 @@ export default function BatchCosting() {
     event.preventDefault();
     if (auth !== 'allowed') return;
     if (!form.product || quantity <= 0) { setNotice('Choose a product and enter the quantity produced.'); return; }
+    if (quantitySold > quantity) { setNotice('Quantity sold cannot be greater than quantity produced.'); return; }
     setSaving(true);
     setNotice('');
     const payload = {
@@ -101,7 +104,7 @@ export default function BatchCosting() {
     };
     const { error } = await supabase.from('production_batches').insert(payload);
     if (error) setNotice(`Could not save batch: ${error.message}`);
-    else { setNotice('Batch saved. Cost and sales margin are recorded.'); setForm(emptyForm()); setCalculatedSnapshot(null); await loadData(); }
+    else { setNotice('Batch saved. Cost and sales margin are recorded.'); setForm(emptyForm()); setCalculatedSnapshot(null); setActiveStep(1); await loadData(); }
     setSaving(false);
   }
 
@@ -132,38 +135,56 @@ export default function BatchCosting() {
 
           <form className="batch-panel" onSubmit={saveBatch}>
             <div className="batch-panel-title"><div><h2>New production batch</h2><p>Enter direct costs for this batch. Add only this batch’s share of the monthly electricity bill.</p></div></div>
+            <div className="batch-steps"><div className={activeStep === 1 ? 'active' : 'complete'}><b>1</b><span>Batch &amp; materials</span></div><div className={activeStep === 2 ? 'active' : ''}><b>2</b><span>Labour &amp; profit</span></div></div>
             <div className="batch-fields">
               <label>Product<select value={form.product} onChange={e => setForm({ ...form, product: e.target.value })} required><option value="">Select a product</option>{products.map(product => <option key={product}>{product}</option>)}</select></label>
               <label>Batch name / reference<input value={form.batch_reference} onChange={e => setForm({ ...form, batch_reference: e.target.value })} placeholder="e.g. November batch 1" /></label>
               <label>Production date<input type="date" value={form.batch_date} onChange={e => setForm({ ...form, batch_date: e.target.value })} required /></label>
               <label>Quantity produced<input type="number" min="0.01" step="any" value={form.quantity_produced} onChange={e => setForm({ ...form, quantity_produced: e.target.value })} placeholder="0" required /></label>
-              <label>Quantity sold<input type="number" min="0" step="any" max={form.quantity_produced || undefined} value={form.quantity_sold} onChange={e => setForm({ ...form, quantity_sold: e.target.value })} placeholder="Enter sold quantity" /></label>
               <label>Unit<select value={form.unit} onChange={e => setForm({ ...form, unit: e.target.value })}><option>kg</option><option>ltr</option><option>g</option><option>ml</option><option>pieces</option><option>buckets</option><option>bags</option></select></label>
-              <label>Selling price per unit (₹)<input type="number" min="0" step="any" value={form.selling_price_per_unit} onChange={e => setForm({ ...form, selling_price_per_unit: e.target.value })} placeholder="0" /></label>
             </div>
 
-            <div className="batch-cost-columns">
-              <CostLines title="Raw materials" lines={form.materials} onAdd={() => addLine('materials')} onChange={(i, field, value) => editLine('materials', i, field, value)} onRemove={i => removeLine('materials', i)} total={materialTotal} />
-              <CostLines title="Labour & payments" lines={form.labour} onAdd={() => addLine('labour')} onChange={(i, field, value) => editLine('labour', i, field, value)} onRemove={i => removeLine('labour', i)} total={labourTotal} namePlaceholder="Worker name" />
-              <CostLines title="Other expenses" lines={form.other_expenses} onAdd={() => addLine('other_expenses')} onChange={(i, field, value) => editLine('other_expenses', i, field, value)} onRemove={i => removeLine('other_expenses', i)} total={otherTotal} namePlaceholder="e.g. Packaging" />
-            </div>
-
-            <div className="batch-fields batch-overheads">
-              <label>Transport for this batch (₹)<input type="number" min="0" step="any" value={form.transport_cost} onChange={e => setForm({ ...form, transport_cost: e.target.value })} placeholder="0" /></label>
-              <label>Electricity share for this batch (₹)<input type="number" min="0" step="any" value={form.electricity_cost} onChange={e => setForm({ ...form, electricity_cost: e.target.value })} placeholder="Enter this batch’s share" /></label>
-              <label className="batch-notes-field">Notes<textarea rows="2" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Optional batch notes" /></label>
-            </div>
-
-            <button className="batch-calculate" type="button" disabled={!quantity || !quantitySold || !Number(form.selling_price_per_unit)} onClick={() => setCalculatedSnapshot(JSON.stringify(form))}><i className="ti ti-calculator" /> Calculate actual margin</button>
-            <div className="batch-calc-note">Profit and margin update only when you press Calculate. This uses quantity sold.</div>
-            <div className="batch-summary">
-              <Summary label="Total batch cost" value={money(totalCost)} />
-              <Summary label="Production cost / unit" value={money(unitCost)} note={quantity ? `per ${form.unit}` : 'Enter quantity'} />
-              <Summary label="Actual sales value" value={marginIsCurrent ? money(revenue) : '—'} note={marginIsCurrent ? `${quantitySold} ${form.unit} sold` : 'Calculate to view'} />
-              <Summary label="Profit on units sold" value={marginIsCurrent ? money(actualProfit) : '—'} positive={marginIsCurrent ? actualProfit >= 0 : undefined} />
-              <Summary label="Actual margin" value={marginIsCurrent ? `${actualMargin.toFixed(1)}%` : '—'} positive={marginIsCurrent ? actualMargin >= 0 : undefined} />
-            </div>
-            <button className="batch-save" type="submit" disabled={saving || !products.length}><i className="ti ti-device-floppy" />{saving ? 'Saving batch…' : 'Save private batch record'}</button>
+            {activeStep === 1 ? (
+              <>
+                <div className="batch-cost-columns batch-material-step">
+                  <CostLines title="Raw materials" lines={form.materials} onAdd={() => addLine('materials')} onChange={(i, field, value) => editLine('materials', i, field, value)} onRemove={i => removeLine('materials', i)} total={materialTotal} />
+                </div>
+                <div className="batch-summary batch-raw-summary">
+                  <Summary label="Raw material total" value={money(materialTotal)} />
+                  <Summary label={`Raw material cost / ${form.unit}`} value={money(rawMaterialCostPerUnit)} note={quantity ? `per ${form.unit}` : 'Enter produced quantity'} />
+                </div>
+                <div className="batch-fields batch-overheads">
+                  <label>Transport for this batch (₹)<input type="number" min="0" step="any" value={form.transport_cost} onChange={e => setForm({ ...form, transport_cost: e.target.value })} placeholder="0" /></label>
+                  <label>Electricity share for this batch (₹)<input type="number" min="0" step="any" value={form.electricity_cost} onChange={e => setForm({ ...form, electricity_cost: e.target.value })} placeholder="Enter this batch’s share" /></label>
+                  <label className="batch-notes-field">Other expenses (₹)<input type="number" min="0" step="any" value={form.other_expenses[0]?.amount || ''} onChange={e => setForm({ ...form, other_expenses: [{ name: 'Other expenses', amount: e.target.value }] })} placeholder="0" /></label>
+                  <label className="batch-notes-field">Notes<textarea rows="2" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Optional batch notes" /></label>
+                </div>
+                <button className="batch-save" type="button" disabled={!form.product || !quantity} onClick={() => setActiveStep(2)}>Next: labour &amp; profit <i className="ti ti-arrow-right" /></button>
+              </>
+            ) : (
+              <>
+                <div className="batch-cost-columns batch-labour-step">
+                  <CostLines title="Labour payments" lines={form.labour} onAdd={() => addLine('labour')} onChange={(i, field, value) => editLine('labour', i, field, value)} onRemove={i => removeLine('labour', i)} total={labourTotal} namePlaceholder="Worker name" />
+                </div>
+                <div className="batch-fields batch-overheads">
+                  <label>Quantity sold<input type="number" min="0" step="any" max={form.quantity_produced || undefined} value={form.quantity_sold} onChange={e => setForm({ ...form, quantity_sold: e.target.value })} placeholder="Enter sold quantity" /></label>
+                  <label>Selling price per {form.unit} (₹)<input type="number" min="0" step="any" value={form.selling_price_per_unit} onChange={e => setForm({ ...form, selling_price_per_unit: e.target.value })} placeholder="0" /></label>
+                </div>
+                <button className="batch-calculate" type="button" disabled={!quantity || !quantitySold || !Number(form.selling_price_per_unit)} onClick={() => setCalculatedSnapshot(JSON.stringify(form))}><i className="ti ti-calculator" /> Calculate actual margin</button>
+                <div className="batch-calc-note">Full production cost includes raw materials, labour, transport, electricity and other expenses. Margin updates only when you calculate.</div>
+                <div className="batch-summary">
+                  <Summary label="Full batch cost" value={money(totalCost)} />
+                  <Summary label={`Full cost / ${form.unit}`} value={money(unitCost)} note={`per ${form.unit}`} />
+                  <Summary label="Actual sales value" value={marginIsCurrent ? money(revenue) : '—'} note={marginIsCurrent ? `${quantitySold} ${form.unit} sold` : 'Calculate to view'} />
+                  <Summary label="Profit on units sold" value={marginIsCurrent ? money(actualProfit) : '—'} positive={marginIsCurrent ? actualProfit >= 0 : undefined} />
+                  <Summary label="Actual margin" value={marginIsCurrent ? `${actualMargin.toFixed(1)}%` : '—'} positive={marginIsCurrent ? actualMargin >= 0 : undefined} />
+                </div>
+                <div className="batch-step-actions">
+                  <button className="batch-back" type="button" onClick={() => setActiveStep(1)}><i className="ti ti-arrow-left" /> Back to batch costs</button>
+                  <button className="batch-save" type="submit" disabled={saving || !products.length}><i className="ti ti-device-floppy" />{saving ? 'Saving batch…' : 'Save private batch record'}</button>
+                </div>
+              </>
+            )}
           </form>
 
           <section className="batch-panel batch-history">
