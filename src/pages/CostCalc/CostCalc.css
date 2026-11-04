@@ -92,6 +92,8 @@
 
 @media (max-width: 1100px) { .costcalc-layout { grid-template-columns: 1fr; } .costcalc-result-card { position: static; } }
 @media (max-width: 768px) { .costcalc-main { margin-left: 0; } .costcalc-content { padding: 16px 16px 32px; } .costcalc-row { grid-template-columns: 1fr 1fr; } .costcalc-item-header, .costcalc-item-row { grid-template-columns: 2fr 1fr 1fr 1fr 32px; } }
-.costcalc-margin-btn{display:inline-flex;align-items:center;gap:7px;margin-top:12px;padding:10px 13px;border:0;border-radius:8px;background:var(--gold,#17877c);color:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer}.costcalc-margin-btn:hover{filter:brightness(.94)}
 
 .costcalc-yield-field{margin-top:12px;max-width:420px}
+
+
+.costcalc-labour-head,.costcalc-labour-row{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) 30px;gap:8px;align-items:center}.costcalc-labour-head{padding:8px 0;color:var(--text-muted,#74858a);font-size:10px;font-weight:700;text-transform:uppercase}.costcalc-labour-row{padding:5px 0}.costcalc-labour-row input{height:36px;min-width:0;padding:0 9px;border:1px solid var(--border,#e1e9e8);border-radius:8px;background:var(--bg-input,#f8fafa);color:var(--text-primary,#182c33);font:inherit;font-size:12px}.costcalc-labour-row button{height:30px;border:0;background:transparent;color:var(--text-muted,#74858a);cursor:pointer}.costcalc-labour-add{margin-top:8px}.costcalc-overhead-field{max-width:300px;margin-top:14px}

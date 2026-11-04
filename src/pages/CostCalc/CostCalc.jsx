@@ -6,6 +6,7 @@ import './CostCalc.css';
 
 const UNITS = ['kg', 'ltr', 'g', 'ml', 'pieces', 'bags'];
 const EMPTY_ITEM = { material_name: '', qty: '', unit: UNITS[0], rate: '' };
+const EMPTY_LABOUR = { name: '', amount: '' };
 
 export default function CostCalc() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,10 +21,8 @@ export default function CostCalc() {
   const [yieldQuantity, setYieldQuantity] = useState('');
   const [unit, setUnit]               = useState('');
   const [items, setItems]             = useState([{ ...EMPTY_ITEM }]);
-  const [labourCost, setLabourCost]   = useState('');
+  const [labourEntries, setLabourEntries] = useState([{ ...EMPTY_LABOUR }]);
   const [overheadCost, setOverheadCost] = useState('');
-  const [marginPct, setMarginPct]     = useState('20');
-  const [calculatedMarginKey, setCalculatedMarginKey] = useState('');
   const [savedFormulaId, setSavedFormulaId] = useState(null);
 
   useEffect(() => { fetchAll(); }, []);
@@ -54,7 +53,7 @@ export default function CostCalc() {
     else { setPackSize(''); setYieldQuantity(''); setUnit(''); }
     setSavedFormulaId(null);
     setItems([{ ...EMPTY_ITEM }]);
-    setLabourCost(''); setOverheadCost(''); setMarginPct('20');
+    setLabourEntries([{ ...EMPTY_LABOUR }]); setOverheadCost('');
   }
 
   function handleSizeChange(sizeStr) {
@@ -69,9 +68,11 @@ export default function CostCalc() {
     setYieldQuantity(String(formula?.yield_quantity || ps || ''));
     if (formula) {
       setSavedFormulaId(formula.id);
-      setLabourCost(String(formula.labour_cost || ''));
+      setLabourEntries(Array.isArray(formula.labour_entries) && formula.labour_entries.length
+        ? formula.labour_entries.map(entry => ({ name: entry.name || '', amount: String(entry.amount || '') }))
+        : formula.labour_cost ? [{ name: 'Labour', amount: String(formula.labour_cost) }] : [{ ...EMPTY_LABOUR }]
+      );
       setOverheadCost(String(formula.overhead_cost || ''));
-      setMarginPct(String(formula.margin_pct || '20'));
       setItems(formula.cost_formula_items?.length > 0
         ? formula.cost_formula_items.map(i => ({ material_name: i.material_name, qty: String(i.qty), unit: i.unit, rate: String(i.rate) }))
         : [{ ...EMPTY_ITEM }]
@@ -79,25 +80,22 @@ export default function CostCalc() {
     } else {
       setSavedFormulaId(null);
       setItems([{ ...EMPTY_ITEM }]);
-      setLabourCost(''); setOverheadCost(''); setMarginPct('20');
+      setLabourEntries([{ ...EMPTY_LABOUR }]); setOverheadCost('');
     }
   }
 
   function updateItem(index, fields) { setItems(prev => prev.map((item, i) => i === index ? { ...item, ...fields } : item)); }
   function addItem() { setItems(prev => [...prev, { ...EMPTY_ITEM }]); }
   function removeItem(index) { if (items.length > 1) setItems(prev => prev.filter((_, i) => i !== index)); }
+  function updateLabour(index, fields) { setLabourEntries(prev => prev.map((entry, i) => i === index ? { ...entry, ...fields } : entry)); }
+  function addLabour() { setLabourEntries(prev => [...prev, { ...EMPTY_LABOUR }]); }
+  function removeLabour(index) { if (labourEntries.length > 1) setLabourEntries(prev => prev.filter((_, i) => i !== index)); }
 
   /* ── Cost calculations ── */
   const rawMaterialCost = items.reduce((s, item) => s + (Number(item.qty || 0) * Number(item.rate || 0)), 0);
-  const labour          = Number(labourCost  || 0);
+  const labour          = labourEntries.reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
   const overhead        = Number(overheadCost || 0);
-  const margin          = Number(marginPct   || 0);
-  const totalCostBefore = rawMaterialCost + labour + overhead;
-  const marginAmt       = totalCostBefore * margin / 100;
-  const finalPrice      = totalCostBefore + marginAmt;
-  const costPerUnit     = Number(yieldQuantity) > 0 ? totalCostBefore / Number(yieldQuantity) : 0;
-  const marginCalculationKey = JSON.stringify({ product, totalCostBefore, packSize, yieldQuantity, unit, margin });
-  const marginIsCalculated = calculatedMarginKey === marginCalculationKey;
+  const costPerUnit     = Number(yieldQuantity) > 0 ? rawMaterialCost / Number(yieldQuantity) : 0;
 
   /* ── Save formula ── */
   async function handleSaveFormula() {
@@ -107,8 +105,10 @@ export default function CostCalc() {
     const payload = {
       product, pack_size: packSize, unit,
       yield_quantity: Number(yieldQuantity || packSize),
-      labour_cost: labour, overhead_cost: overhead,
-      margin_pct: margin, updated_at: new Date().toISOString(),
+      labour_cost: labour,
+      labour_entries: labourEntries.filter(entry => entry.name.trim()).map(entry => ({ name: entry.name.trim(), amount: Number(entry.amount || 0) })),
+      overhead_cost: overhead,
+      updated_at: new Date().toISOString(),
     };
 
     let formulaId = savedFormulaId;
@@ -152,7 +152,7 @@ export default function CostCalc() {
           <div className="costcalc-header">
             <div>
               <h2 className="costcalc-title">Cost Calculator</h2>
-              <p className="costcalc-sub">Enter the total quantity made from these costs. Margin is kept separate from production cost.</p>
+              <p className="costcalc-sub">Save the material formula and yield. Labour is recorded separately; no margin is added here.</p>
             </div>
           </div>
 
@@ -234,35 +234,23 @@ export default function CostCalc() {
                 </div>
               </div>
 
-              {/* Labour + Overhead */}
+              {/* Labour + Overhead, kept separate from material unit cost */}
               <div className="costcalc-card">
-                <div className="costcalc-card-title"><i className="ti ti-tools" /> Other Costs (per batch / per unit)</div>
-                <div className="costcalc-row">
-                  <div className="costcalc-field">
-                    <label>Labour Cost (₹)</label>
-                    <div className="costcalc-input-wrap">
-                      <span className="costcalc-prefix">₹</span>
-                      <input type="number" min="0" placeholder="0" value={labourCost} onChange={e => setLabourCost(e.target.value)} />
-                    </div>
+                <div className="costcalc-card-title"><i className="ti ti-tools" /> Labour payments — kept separate</div>
+                <div className="costcalc-labour-head"><span>Worker name</span><span>Salary / payment (₹)</span><span /></div>
+                {labourEntries.map((entry, index) => (
+                  <div className="costcalc-labour-row" key={index}>
+                    <input value={entry.name} onChange={e => updateLabour(index, { name: e.target.value })} placeholder="Worker name" />
+                    <input type="number" min="0" step="any" value={entry.amount} onChange={e => updateLabour(index, { amount: e.target.value })} placeholder="Payment" />
+                    {labourEntries.length > 1 && <button type="button" onClick={() => removeLabour(index)} aria-label="Remove worker"><i className="ti ti-x" /></button>}
                   </div>
-                  <div className="costcalc-field">
-                    <label>Overhead Cost (₹)</label>
-                    <div className="costcalc-input-wrap">
-                      <span className="costcalc-prefix">₹</span>
-                      <input type="number" min="0" placeholder="0" value={overheadCost} onChange={e => setOverheadCost(e.target.value)} />
-                    </div>
-                  </div>
-                  <div className="costcalc-field">
-                    <label>Optional margin %</label>
-                    <div className="costcalc-input-wrap">
-                      <input type="number" min="0" max="100" placeholder="20" value={marginPct} onChange={e => setMarginPct(e.target.value)} />
-                      <span className="costcalc-suffix">%</span>
-                    </div>
-                  </div>
+                ))}
+                <button type="button" className="costcalc-add-btn costcalc-labour-add" onClick={addLabour}><i className="ti ti-plus" /> Add worker</button>
+                <div className="costcalc-subtotal"><span>Labour total (not included above):</span><strong>{fmtAmt(labour)}</strong></div>
+                <div className="costcalc-field costcalc-overhead-field">
+                  <label>Overhead / other cost (₹) — separate</label>
+                  <div className="costcalc-input-wrap"><span className="costcalc-prefix">₹</span><input type="number" min="0" step="any" placeholder="0" value={overheadCost} onChange={e => setOverheadCost(e.target.value)} /></div>
                 </div>
-                <button type="button" className="costcalc-margin-btn" onClick={() => setCalculatedMarginKey(marginCalculationKey)}>
-                  <i className="ti ti-calculator" /> Calculate selling price with margin
-                </button>
               </div>
 
               <button className="costcalc-save-btn" onClick={handleSaveFormula} disabled={saving}>
@@ -280,34 +268,24 @@ export default function CostCalc() {
                 </div>
 
                 <div className="costcalc-breakdown">
-                  <div className="costcalc-breakdown-row">
-                    <span>Raw Materials</span>
+                  <div className="costcalc-breakdown-row subtotal">
+                    <span>Raw Material Total</span>
                     <span>{fmtAmt(rawMaterialCost)}</span>
                   </div>
-                  <div className="costcalc-breakdown-row">
-                    <span>Labour</span>
-                    <span>{fmtAmt(labour)}</span>
-                  </div>
-                  <div className="costcalc-breakdown-row">
-                    <span>Overhead</span>
-                    <span>{fmtAmt(overhead)}</span>
-                  </div>
-                  <div className="costcalc-breakdown-row subtotal">
-                    <span>Total Production Cost</span>
-                    <span>{fmtAmt(totalCostBefore)}</span>
-                  </div>
-                  {marginIsCalculated && <div className="costcalc-breakdown-row"><span>Added margin ({margin}%)</span><span>{fmtAmt(marginAmt)}</span></div>}
+                  <div className="costcalc-breakdown-row"><span>Formula yield</span><span>{yieldQuantity || 0} {unit}</span></div>
+                  <div className="costcalc-breakdown-row"><span>Labour (separate)</span><span>{fmtAmt(labour)}</span></div>
+                  <div className="costcalc-breakdown-row"><span>Other costs (separate)</span><span>{fmtAmt(overhead)}</span></div>
                 </div>
 
                 <div className="costcalc-final">
-                  <div className="costcalc-final-label">{marginIsCalculated ? 'Selling Price with margin' : 'Production cost before margin'}</div>
-                  <div className="costcalc-final-val">{fmtAmt(marginIsCalculated ? finalPrice : totalCostBefore)}</div>
-                  <div className="costcalc-final-sub">total for {yieldQuantity || 0} {unit} produced</div>
+                  <div className="costcalc-final-label">Raw material cost for formula</div>
+                  <div className="costcalc-final-val">{fmtAmt(rawMaterialCost)}</div>
+                  <div className="costcalc-final-sub">for {yieldQuantity || 0} {unit} produced</div>
                 </div>
 
-                {packSize && Number(packSize) > 1 && (
+                {Number(yieldQuantity) > 0 && (
                   <div className="costcalc-per-unit">
-                    <div className="costcalc-per-unit-label">Production cost per 1 {unit} (no margin)</div>
+                    <div className="costcalc-per-unit-label">Raw material cost per 1 {unit}</div>
                     <div className="costcalc-per-unit-val">{fmtAmt(costPerUnit)}</div>
                   </div>
                 )}
@@ -326,9 +304,11 @@ export default function CostCalc() {
                     setYieldQuantity(String(f.yield_quantity || f.pack_size || ''));
                           setUnit(f.unit);
                           setSavedFormulaId(f.id);
-                          setLabourCost(String(f.labour_cost || ''));
+                          setLabourEntries(Array.isArray(f.labour_entries) && f.labour_entries.length
+                            ? f.labour_entries.map(entry => ({ name: entry.name || '', amount: String(entry.amount || '') }))
+                            : f.labour_cost ? [{ name: 'Labour', amount: String(f.labour_cost) }] : [{ ...EMPTY_LABOUR }]
+                          );
                           setOverheadCost(String(f.overhead_cost || ''));
-                          setMarginPct(String(f.margin_pct || '20'));
                           setItems(f.cost_formula_items?.length > 0
                             ? f.cost_formula_items.map(i => ({ material_name: i.material_name, qty: String(i.qty), unit: i.unit, rate: String(i.rate) }))
                             : [{ ...EMPTY_ITEM }]
@@ -340,10 +320,7 @@ export default function CostCalc() {
                           <div className="costcalc-saved-size">{f.pack_size} {f.unit}</div>
                         </div>
                         <div className="costcalc-saved-price">
-                          {fmtAmt(
-                            (f.cost_formula_items || []).reduce((s, i) => s + i.amount, 0) +
-                            Number(f.labour_cost || 0) + Number(f.overhead_cost || 0)
-                          )}
+                          {fmtAmt((f.cost_formula_items || []).reduce((s, i) => s + Number(i.amount || 0), 0) / Number(f.yield_quantity || f.pack_size || 1))} / {f.unit}
                         </div>
                       </div>
                     ))}
