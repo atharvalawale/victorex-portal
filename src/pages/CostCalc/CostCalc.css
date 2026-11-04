@@ -97,3 +97,6 @@
 
 
 .costcalc-labour-head,.costcalc-labour-row{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) 30px;gap:8px;align-items:center}.costcalc-labour-head{padding:8px 0;color:var(--text-muted,#74858a);font-size:10px;font-weight:700;text-transform:uppercase}.costcalc-labour-row{padding:5px 0}.costcalc-labour-row input{height:36px;min-width:0;padding:0 9px;border:1px solid var(--border,#e1e9e8);border-radius:8px;background:var(--bg-input,#f8fafa);color:var(--text-primary,#182c33);font:inherit;font-size:12px}.costcalc-labour-row button{height:30px;border:0;background:transparent;color:var(--text-muted,#74858a);cursor:pointer}.costcalc-labour-add{margin-top:8px}.costcalc-overhead-field{max-width:300px;margin-top:14px}
+
+.costcalc-yield-help{display:block;margin-top:6px;color:var(--text-muted,#74858a);font-size:11px;line-height:1.45}
+

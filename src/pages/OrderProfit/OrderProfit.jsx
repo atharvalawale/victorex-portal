@@ -79,7 +79,8 @@ export default function OrderProfit() {
           norm(candidate.unit) === norm(line.unit)
         );
         if (!formula) { missing += 1; return { ...line, cost: null }; }
-        const yieldQuantity = Number(formula.yield_quantity || formula.pack_size || 0);
+        const savedYield = Number(formula.yield_quantity || 0);
+        const yieldQuantity = savedYield > 0 && savedYield !== Number(formula.pack_size) ? savedYield : 0;
         if (!yieldQuantity) { missing += 1; return { ...line, cost: null }; }
         const perOutputUnit = formulaTotal(formula) / yieldQuantity;
         const lineCost = perOutputUnit * Number(line.pack_size || 1) * Number(line.qty || 0);

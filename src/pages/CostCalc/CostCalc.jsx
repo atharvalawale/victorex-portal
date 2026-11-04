@@ -38,7 +38,7 @@ export default function CostCalc() {
     const firstProduct = (ps.data || [])[0]?.product || '';
     if (firstProduct) setProduct(current => current || firstProduct);
     const sizes = (ps.data || []).filter(p => p.product === firstProduct);
-    if (sizes[0]) { setPackSize(sizes[0].size); setYieldQuantity(String(sizes[0].size)); setUnit(sizes[0].unit); }
+    if (sizes[0]) { setPackSize(sizes[0].size); setYieldQuantity(''); setUnit(sizes[0].unit); }
   }
 
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 3000); }
@@ -49,7 +49,7 @@ export default function CostCalc() {
   function handleProductChange(p) {
     setProduct(p);
     const sizes = getSizesForProduct(p);
-    if (sizes[0]) { setPackSize(sizes[0].size); setYieldQuantity(String(sizes[0].size)); setUnit(sizes[0].unit); }
+    if (sizes[0]) { setPackSize(sizes[0].size); setYieldQuantity(''); setUnit(sizes[0].unit); }
     else { setPackSize(''); setYieldQuantity(''); setUnit(''); }
     setSavedFormulaId(null);
     setItems([{ ...EMPTY_ITEM }]);
@@ -59,13 +59,14 @@ export default function CostCalc() {
   function handleSizeChange(sizeStr) {
     const [size, u] = sizeStr.split('__');
     setPackSize(size); setUnit(u);
-    setYieldQuantity(size);
+    setYieldQuantity('');
     loadFormula(product, size, u);
   }
 
   function loadFormula(p, ps, u) {
     const formula = formulas.find(f => f.product === p && f.pack_size === ps && f.unit === u);
-    setYieldQuantity(String(formula?.yield_quantity || ps || ''));
+    const savedYield = Number(formula?.yield_quantity || 0);
+    setYieldQuantity(savedYield > 0 && savedYield !== Number(ps) ? String(savedYield) : '');
     if (formula) {
       setSavedFormulaId(formula.id);
       setLabourEntries(Array.isArray(formula.labour_entries) && formula.labour_entries.length
@@ -100,11 +101,12 @@ export default function CostCalc() {
   /* ── Save formula ── */
   async function handleSaveFormula() {
     if (!packSize) { showToast('Select pack size first'); return; }
+    if (!(Number(yieldQuantity) > 0)) { showToast('Enter the actual quantity produced for this formula'); return; }
     setSaving(true);
 
     const payload = {
       product, pack_size: packSize, unit,
-      yield_quantity: Number(yieldQuantity || packSize),
+      yield_quantity: Number(yieldQuantity),
       labour_cost: labour,
       labour_entries: labourEntries.filter(entry => entry.name.trim()).map(entry => ({ name: entry.name.trim(), amount: Number(entry.amount || 0) })),
       overhead_cost: overhead,
@@ -182,8 +184,9 @@ export default function CostCalc() {
                   </div>
                 </div>
                 <div className="costcalc-field costcalc-yield-field">
-                  <label>Total quantity produced by these costs ({unit || 'unit'})</label>
-                  <input type="number" min="0.01" step="any" value={yieldQuantity} onChange={e => setYieldQuantity(e.target.value)} placeholder="For example, 820.36" />
+                  <label>Actual batch quantity produced ({unit || 'unit'})</label>
+                  <input type="number" min="0.01" step="any" value={yieldQuantity} onChange={e => setYieldQuantity(e.target.value)} placeholder="Enter finished quantity, e.g. 820.36" />
+                  <small className="costcalc-yield-help">Pack size ({packSize || '—'} {unit}) is the sale bucket. Enter the full quantity produced for this batch.</small>
                 </div>
                 {savedFormulaId && (
                   <div className="costcalc-saved-note">
@@ -264,7 +267,7 @@ export default function CostCalc() {
               <div className="costcalc-result-card">
                 <div className="costcalc-result-title">Cost Breakdown</div>
                 <div className="costcalc-result-product">
-                  {product} — {packSize} {unit}
+                  {product} · Sale pack {packSize} {unit}
                 </div>
 
                 <div className="costcalc-breakdown">
@@ -272,20 +275,20 @@ export default function CostCalc() {
                     <span>Raw Material Total</span>
                     <span>{fmtAmt(rawMaterialCost)}</span>
                   </div>
-                  <div className="costcalc-breakdown-row"><span>Formula yield</span><span>{yieldQuantity || 0} {unit}</span></div>
+                  <div className="costcalc-breakdown-row"><span>Actual batch output</span><span>{yieldQuantity ? `${yieldQuantity} ${unit}` : 'Enter quantity'}</span></div>
                   <div className="costcalc-breakdown-row"><span>Labour (separate)</span><span>{fmtAmt(labour)}</span></div>
                   <div className="costcalc-breakdown-row"><span>Other costs (separate)</span><span>{fmtAmt(overhead)}</span></div>
                 </div>
 
                 <div className="costcalc-final">
-                  <div className="costcalc-final-label">Raw material cost for formula</div>
+                  <div className="costcalc-final-label">Total material production cost</div>
                   <div className="costcalc-final-val">{fmtAmt(rawMaterialCost)}</div>
-                  <div className="costcalc-final-sub">for {yieldQuantity || 0} {unit} produced</div>
+                  <div className="costcalc-final-sub">{yieldQuantity ? `for ${yieldQuantity} ${unit} produced` : 'Enter actual batch quantity to calculate unit cost'}</div>
                 </div>
 
                 {Number(yieldQuantity) > 0 && (
                   <div className="costcalc-per-unit">
-                    <div className="costcalc-per-unit-label">Raw material cost per 1 {unit}</div>
+                    <div className="costcalc-per-unit-label">Material production cost per 1 {unit}</div>
                     <div className="costcalc-per-unit-val">{fmtAmt(costPerUnit)}</div>
                   </div>
                 )}
@@ -301,7 +304,8 @@ export default function CostCalc() {
                         onClick={() => {
                           setProduct(f.product);
                     setPackSize(f.pack_size);
-                    setYieldQuantity(String(f.yield_quantity || f.pack_size || ''));
+                          const savedYield = Number(f.yield_quantity || 0);
+                          setYieldQuantity(savedYield > 0 && savedYield !== Number(f.pack_size) ? String(savedYield) : '');
                           setUnit(f.unit);
                           setSavedFormulaId(f.id);
                           setLabourEntries(Array.isArray(f.labour_entries) && f.labour_entries.length
@@ -320,7 +324,9 @@ export default function CostCalc() {
                           <div className="costcalc-saved-size">{f.pack_size} {f.unit}</div>
                         </div>
                         <div className="costcalc-saved-price">
-                          {fmtAmt((f.cost_formula_items || []).reduce((s, i) => s + Number(i.amount || 0), 0) / Number(f.yield_quantity || f.pack_size || 1))} / {f.unit}
+                          {Number(f.yield_quantity) > 0 && Number(f.yield_quantity) !== Number(f.pack_size)
+                            ? `${fmtAmt((f.cost_formula_items || []).reduce((s, i) => s + Number(i.amount || 0), 0) / Number(f.yield_quantity))} / ${f.unit}`
+                            : 'Enter batch yield'}
                         </div>
                       </div>
                     ))}
