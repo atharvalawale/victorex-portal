@@ -20,6 +20,12 @@ export default function Login() {
   const [errors, setErrors]         = useState({});
   const [capsOn, setCapsOn]         = useState(false);
   const artRef = useRef(null);
+  const [seen] = useState(() => {
+    try { return sessionStorage.getItem('vx_login_seen') === '1'; } catch { return false; }
+  });
+  useEffect(() => {
+    try { sessionStorage.setItem('vx_login_seen', '1'); } catch { /* storage unavailable */ }
+  }, []);
 
   /* Soft mouse parallax on the paint panel (skipped on touch / reduced motion) */
   useEffect(() => {
@@ -85,7 +91,13 @@ export default function Login() {
   const checkCaps = (e) => setCapsOn(!!e.getModifierState?.('CapsLock'));
 
   return (
-    <div className="lg-page">
+    <div className={`lg-page${seen ? ' lg-seen' : ''}`}>
+      {/* ── Preloader: logo on a clean screen, then it clears ── */}
+      <div className="lg-pre" aria-hidden="true">
+        <span className="lg-pre-mark">V</span>
+        <span>Victorex</span>
+      </div>
+
       {/* ── Paint panel (decorative) ── */}
       <aside className="lg-art" ref={artRef} aria-hidden="true">
         <div className="lg-layer">
