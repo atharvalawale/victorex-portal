@@ -52,124 +52,90 @@ export default function Login() {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
   }
 
+  const rise = (d) => ({ style: { '--d': `${d}ms` } });
+
   return (
-    <div className="login-page">
-      <div className="login-card">
+    <div className="lg-page">
+      {/* ── Paint panel (decorative) ── */}
+      <aside className="lg-art" aria-hidden="true">
+        <div className="lg-wash lg-wash-a" />
+        <div className="lg-wash lg-wash-b" />
+        <div className="lg-wash lg-wash-c" />
+        <svg className="lg-stroke" viewBox="0 0 600 200" preserveAspectRatio="none">
+          <path d="M10 130 C 120 20, 230 210, 330 110 S 520 30, 590 95" />
+        </svg>
+        <div className="lg-brand"><span className="lg-mark">V</span>Victorex</div>
+        <h2 className="lg-hero">
+          <span className="lg-line"><span>Smooth finish,</span></span>
+          <span className="lg-line"><span>every order.</span></span>
+        </h2>
+        <p className="lg-tag">Orders, dealers and ledgers in one calm place.</p>
+      </aside>
 
-        {/* ── Logo ── */}
-        <div className="login-logo-row">
-          <div className="login-logo-mark">
-            <span>V</span>
-          </div>
-          <div className="login-logo-text">
-            <span className="login-logo-name">Victorex</span>
-            <span className="login-logo-sub">Management Portal</span>
-          </div>
-        </div>
+      {/* ── Form panel ── */}
+      <main className="lg-panel">
+        <div className="lg-form-wrap">
+          <p className="lg-eyebrow lg-rise" {...rise(500)}>Management Portal</p>
+          <h1 className="lg-heading lg-rise" {...rise(620)}>Welcome back</h1>
+          <p className="lg-sub lg-rise" {...rise(720)}>Sign in to your admin account</p>
 
-        <div className="login-divider" />
+          {alertMsg && (
+            <div className="lg-alert" role="alert">
+              <i className="ti ti-alert-circle" aria-hidden="true" />
+              {alertMsg}
+            </div>
+          )}
 
-        {/* ── Heading ── */}
-        <h1 className="login-heading">Welcome back</h1>
-        <p className="login-subheading">Sign in to your admin account</p>
-
-        {/* ── Alert banner ── */}
-        {alertMsg && (
-          <div className="login-alert">
-            <i className="ti ti-alert-circle" aria-hidden="true" />
-            {alertMsg}
-          </div>
-        )}
-
-        {/* ── Form ── */}
-        <form className="login-form" onSubmit={handleLogin} noValidate>
-
-          {/* Email */}
-          <div className="login-field">
-            <label className="login-label" htmlFor="email">Email</label>
-            <div className="login-input-wrap">
+          <form onSubmit={handleLogin} noValidate>
+            <div className="lg-field lg-rise" {...rise(820)}>
+              <label className="lg-label" htmlFor="email">Email</label>
               <input
                 id="email"
                 type="email"
-                className={`login-input${errors.email ? ' has-error' : ''}`}
+                className={`lg-input${errors.email ? ' has-error' : ''}`}
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => handleChange('email', e.target.value)}
                 autoComplete="email"
                 autoFocus
               />
-              <span className="login-input-icon">
-                <i className="ti ti-user" aria-hidden="true" />
-              </span>
+              {errors.email && <div className="lg-error">{errors.email}</div>}
             </div>
-            {errors.email && (
-              <div className="login-error-msg">
-                <i className="ti ti-info-circle" aria-hidden="true" />
-                {errors.email}
+
+            <div className="lg-field lg-rise" {...rise(920)}>
+              <label className="lg-label" htmlFor="password">Password</label>
+              <div className="lg-pass">
+                <input
+                  id="password"
+                  type={showPass ? 'text' : 'password'}
+                  className={`lg-input${errors.password ? ' has-error' : ''}`}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => handleChange('password', e.target.value)}
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  className="lg-eye"
+                  onClick={() => setShowPass((p) => !p)}
+                  aria-label={showPass ? 'Hide password' : 'Show password'}
+                >
+                  <i className={`ti ${showPass ? 'ti-eye-off' : 'ti-eye'}`} aria-hidden="true" />
+                </button>
               </div>
-            )}
-          </div>
-
-          {/* Password */}
-          <div className="login-field">
-            <label className="login-label" htmlFor="password">Password</label>
-            <div className="login-input-wrap">
-              <input
-                id="password"
-                type={showPass ? 'text' : 'password'}
-                className={`login-input${errors.password ? ' has-error' : ''}`}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => handleChange('password', e.target.value)}
-                autoComplete="current-password"
-              />
-              <span className="login-input-icon">
-                <i className="ti ti-lock" aria-hidden="true" />
-              </span>
-              <button
-                type="button"
-                className="login-eye-btn"
-                onClick={() => setShowPass((p) => !p)}
-                aria-label={showPass ? 'Hide password' : 'Show password'}
-              >
-                <i className={`ti ${showPass ? 'ti-eye-off' : 'ti-eye'}`} aria-hidden="true" />
-              </button>
+              {errors.password && <div className="lg-error">{errors.password}</div>}
             </div>
-            {errors.password && (
-              <div className="login-error-msg">
-                <i className="ti ti-info-circle" aria-hidden="true" />
-                {errors.password}
-              </div>
-            )}
-          </div>
 
-          {/* Submit */}
-          <button type="submit" className="login-btn" disabled={loading}>
-            {loading ? (
-              <span className="login-spinner" aria-label="Signing in..." />
-            ) : (
-              <>
-                <i className="ti ti-login" aria-hidden="true" />
-                Sign in
-              </>
-            )}
-          </button>
-
-        </form>
-
-        {/* ── Footer ── */}
-        <div className="login-footer">
-          <div className="login-user-pill">
-            <div className="login-avatar">V</div>
-            <div className="login-user-info">
-              <div className="name">Victorex Portal</div>
-              <div className="role">Business management workspace</div>
-            </div>
-          </div>
-          <span className="login-admin-badge">Admin</span>
+            <button type="submit" className="lg-btn lg-rise" {...rise(1020)} disabled={loading}>
+              {loading ? (
+                <span className="lg-spinner" aria-label="Signing in..." />
+              ) : (
+                <span className="lg-btn-text">Sign in <i className="ti ti-arrow-right" aria-hidden="true" /></span>
+              )}
+            </button>
+          </form>
         </div>
-
-      </div>
+      </main>
     </div>
   );
 }
