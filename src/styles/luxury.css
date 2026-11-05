@@ -155,6 +155,30 @@ table tbody td { border-color: var(--surface-border) !important; }
 
 .sidebar-item,.kpi-card,.dash-card,.products-card,.products-pack-row>button { transition: background-color 220ms ease,border-color 220ms ease,color 180ms ease,transform 220ms cubic-bezier(.2,.75,.25,1),box-shadow 220ms ease !important; }
 .kpi-card:hover,.products-card:hover { transform: translateY(-2px); box-shadow: var(--card-shadow-hover) !important; }
+.sidebar-item:hover { transform: translateX(2px); }
+
+/* Quiet cinematic movement, shared across routes. */
+@keyframes luxe-rise-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes luxe-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes luxe-dialog-in { from { opacity: 0; transform: translateY(12px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+[class$="-content"] { animation: luxe-rise-in 560ms cubic-bezier(.2,.72,.22,1) both !important; }
+[class$="-header"]:not(.modal-header):not(.inv-modal-header):not(.rdoc-header):not(.inv-header) { animation: luxe-rise-in 540ms cubic-bezier(.2,.72,.22,1) 35ms both; }
+.kpi-grid > *, .analytics-kpis > *, .products-grid > *, .credit-cards > *, .dashboard-analysis-grid > *, .dashboard-chart-grid > *, .profit-kpis > *, .export-grid > *, .offers-grid > * { animation: luxe-rise-in 620ms cubic-bezier(.2,.72,.22,1) both; }
+.kpi-grid > :nth-child(2),.analytics-kpis > :nth-child(2),.products-grid > :nth-child(2),.credit-cards > :nth-child(2),.dashboard-analysis-grid > :nth-child(2),.dashboard-chart-grid > :nth-child(2),.profit-kpis > :nth-child(2),.export-grid > :nth-child(2),.offers-grid > :nth-child(2) { animation-delay: 55ms; }
+.kpi-grid > :nth-child(3),.analytics-kpis > :nth-child(3),.products-grid > :nth-child(3),.credit-cards > :nth-child(3),.dashboard-analysis-grid > :nth-child(3),.dashboard-chart-grid > :nth-child(3),.profit-kpis > :nth-child(3),.export-grid > :nth-child(3),.offers-grid > :nth-child(3) { animation-delay: 105ms; }
+.kpi-grid > :nth-child(4),.analytics-kpis > :nth-child(4),.products-grid > :nth-child(4),.credit-cards > :nth-child(4),.dashboard-analysis-grid > :nth-child(4),.dashboard-chart-grid > :nth-child(4),.profit-kpis > :nth-child(4),.export-grid > :nth-child(4),.offers-grid > :nth-child(4) { animation-delay: 155ms; }
+.kpi-card,.dash-card,.dashboard-chart-card,.analytics-card,.products-card,.profit-panel,.products-panel,.batch-panel,[class$="-table-wrap"] { transition: border-color 240ms ease,box-shadow 260ms ease,background-color 220ms ease,transform 260ms cubic-bezier(.2,.72,.22,1); }
+.dashboard-chart-card:hover,.analytics-card:hover,.products-panel:hover,.profit-panel:hover { box-shadow: var(--card-shadow-hover) !important; }
+.product-hero-card,.collection-card { position: relative; isolation: isolate; overflow: hidden; }
+.product-hero-card::after,.collection-card::after { position: absolute; z-index: 0; inset: 0; content: ""; background: linear-gradient(115deg,transparent 20%,rgba(230,201,142,.08) 46%,transparent 68%); transform: translateX(-110%); transition: transform 800ms cubic-bezier(.2,.72,.22,1); pointer-events: none; }
+.product-hero-card > *,.collection-card > * { position: relative; z-index: 1; }
+.product-hero-card:hover::after,.collection-card:hover::after { transform: translateX(110%); }
+button:not(:disabled) { transition: transform 180ms cubic-bezier(.2,.72,.22,1),box-shadow 220ms ease,background-color 200ms ease,border-color 200ms ease,color 160ms ease !important; }
+button:not(:disabled):active { transform: translateY(1px) scale(.985); }
+.modal-overlay,.inv-modal-overlay { animation: luxe-fade-in 200ms ease both; }
+.modal-card,.inv-modal-card { animation: luxe-dialog-in 280ms cubic-bezier(.2,.72,.22,1) both; }
+table tbody tr { transition: background-color 160ms ease; }
+input,select,textarea { transition: border-color 180ms ease,box-shadow 180ms ease,background-color 180ms ease !important; }
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible { outline-color: rgba(169,129,67,.55) !important; }
 ::selection { color: #172126; background: rgba(208,173,112,.32); }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
