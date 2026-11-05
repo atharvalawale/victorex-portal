@@ -3,12 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import './Login.css';
 
-const CHIPS = [
-  { name: 'WallVex Pro', color: '#C9922A' },
-  { name: 'Chromvex',    color: '#0B1F3A' },
-  { name: 'Primvex',     color: '#E8B84B' },
-];
-
 export default function Login() {
   const navigate = useNavigate();
 
@@ -91,123 +85,98 @@ export default function Login() {
   const checkCaps = (e) => setCapsOn(!!e.getModifierState?.('CapsLock'));
 
   return (
-    <div className={`lg-page${seen ? ' lg-seen' : ''}`}>
-      {/* ── Preloader: logo on a clean screen, then it clears ── */}
-      <div className="lg-pre" aria-hidden="true">
-        <span className="lg-pre-mark">V</span>
-        <span>Victorex</span>
-      </div>
-
-      {/* ── Paint panel (decorative) ── */}
-      <aside className="lg-art" ref={artRef} aria-hidden="true">
+    <div className={`lg-page${seen ? '' : ' lg-intro'}`} ref={artRef}>
+      {/* Full-screen dark curtain: rises over the whole page, then soft paint glow */}
+      <div className="lg-curtain" aria-hidden="true">
         <div className="lg-layer">
           <div className="lg-wash lg-wash-a" />
           <div className="lg-wash lg-wash-b" />
           <div className="lg-wash lg-wash-c" />
         </div>
-        <svg className="lg-stroke" viewBox="0 0 600 200" preserveAspectRatio="none">
-          <defs>
-            <filter id="lg-dry" x="-5%" y="-40%" width="110%" height="180%">
-              <feTurbulence type="fractalNoise" baseFrequency="0.03 0.55" numOctaves="2" seed="4" result="n" />
-              <feDisplacementMap in="SourceGraphic" in2="n" scale="10" xChannelSelector="R" yChannelSelector="G" />
-            </filter>
-          </defs>
-          <g filter="url(#lg-dry)">
-            <path className="lg-p1" d="M10 130 C 120 20, 230 210, 330 110 S 520 30, 590 95" />
-            <path className="lg-p2" d="M10 142 C 130 40, 240 215, 335 124 S 525 48, 590 108" />
-          </g>
+      </div>
+
+      {/* Wordmark: starts large and centred, then settles into the header */}
+      <div className="lg-logo" role="img" aria-label="Gayatri Metal Finishers">
+        <span className="lg-script">Gayatri Metal Finishers</span>
+        <svg className="lg-swash" viewBox="0 0 300 16" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M4 11 C 70 1, 150 17, 296 5" />
         </svg>
+      </div>
 
-        <div className="lg-brand"><span className="lg-mark">V</span>Victorex</div>
-        <div className="lg-copy">
-          <h2 className="lg-hero">
-            <span className="lg-line"><span>Smooth finish,</span></span>
-            <span className="lg-line"><span>every order.</span></span>
-          </h2>
-          <p className="lg-tag">Orders, dealers and ledgers in one calm place.</p>
-          <ul className="lg-chips">
-            {CHIPS.map((c, i) => (
-              <li key={c.name} style={{ '--c': c.color, '--i': i }}>
-                <span className="lg-chip" />{c.name}
-              </li>
-            ))}
-          </ul>
-          <p className="lg-co">Gayatri Metal Finishers</p>
-        </div>
-      </aside>
+      <main className="lg-center">
+        <p className="lg-eyebrow lg-rise" {...rise(0)}>Victorex &middot; Management Portal</p>
+        <h1 className="lg-heading">
+          <span className="lg-line"><span>Welcome</span></span>
+          <span className="lg-line"><span>back</span></span>
+        </h1>
+        <p className="lg-sub lg-rise" {...rise(450)}>Sign in to your admin account</p>
 
-      {/* ── Form panel ── */}
-      <main className="lg-panel">
-        <div className="lg-form-wrap">
-          <p className="lg-eyebrow lg-rise" {...rise(500)}>Management Portal</p>
-          <h1 className="lg-heading lg-rise" {...rise(620)}>Welcome back</h1>
-          <p className="lg-sub lg-rise" {...rise(720)}>Sign in to your admin account</p>
+        {alertMsg && (
+          <div className="lg-alert" role="alert">
+            <i className="ti ti-alert-circle" aria-hidden="true" />
+            {alertMsg}
+          </div>
+        )}
 
-          {alertMsg && (
-            <div className="lg-alert" role="alert">
-              <i className="ti ti-alert-circle" aria-hidden="true" />
-              {alertMsg}
-            </div>
-          )}
+        <form className="lg-form" onSubmit={handleLogin} noValidate>
+          <div className="lg-field lg-rise" {...rise(650)}>
+            <label className="lg-label" htmlFor="email">Email</label>
+            <input
+              id="email"
+              type="email"
+              className={`lg-input${errors.email ? ' has-error' : ''}`}
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => handleChange('email', e.target.value)}
+              autoComplete="email"
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? 'email-err' : undefined}
+              autoFocus
+            />
+            {errors.email && <div className="lg-error" id="email-err">{errors.email}</div>}
+          </div>
 
-          <form onSubmit={handleLogin} noValidate>
-            <div className="lg-field lg-rise" {...rise(820)}>
-              <label className="lg-label" htmlFor="email">Email</label>
+          <div className="lg-field lg-rise" {...rise(770)}>
+            <label className="lg-label" htmlFor="password">Password</label>
+            <div className="lg-pass">
               <input
-                id="email"
-                type="email"
-                className={`lg-input${errors.email ? ' has-error' : ''}`}
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => handleChange('email', e.target.value)}
-                autoComplete="email"
-                aria-invalid={!!errors.email}
-                aria-describedby={errors.email ? 'email-err' : undefined}
-                autoFocus
+                id="password"
+                type={showPass ? 'text' : 'password'}
+                className={`lg-input${errors.password ? ' has-error' : ''}`}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => handleChange('password', e.target.value)}
+                onKeyDown={checkCaps}
+                onKeyUp={checkCaps}
+                onBlur={() => setCapsOn(false)}
+                autoComplete="current-password"
+                aria-invalid={!!errors.password}
+                aria-describedby={errors.password ? 'password-err' : undefined}
               />
-              {errors.email && <div className="lg-error" id="email-err">{errors.email}</div>}
+              <button
+                type="button"
+                className="lg-eye"
+                onClick={() => setShowPass((p) => !p)}
+                aria-label={showPass ? 'Hide password' : 'Show password'}
+              >
+                <i className={`ti ${showPass ? 'ti-eye-off' : 'ti-eye'}`} aria-hidden="true" />
+              </button>
             </div>
+            {capsOn && <div className="lg-hint" role="status">Caps Lock is on</div>}
+            {errors.password && <div className="lg-error" id="password-err">{errors.password}</div>}
+          </div>
 
-            <div className="lg-field lg-rise" {...rise(920)}>
-              <label className="lg-label" htmlFor="password">Password</label>
-              <div className="lg-pass">
-                <input
-                  id="password"
-                  type={showPass ? 'text' : 'password'}
-                  className={`lg-input${errors.password ? ' has-error' : ''}`}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => handleChange('password', e.target.value)}
-                  onKeyDown={checkCaps}
-                  onKeyUp={checkCaps}
-                  onBlur={() => setCapsOn(false)}
-                  autoComplete="current-password"
-                  aria-invalid={!!errors.password}
-                  aria-describedby={errors.password ? 'password-err' : undefined}
-                />
-                <button
-                  type="button"
-                  className="lg-eye"
-                  onClick={() => setShowPass((p) => !p)}
-                  aria-label={showPass ? 'Hide password' : 'Show password'}
-                >
-                  <i className={`ti ${showPass ? 'ti-eye-off' : 'ti-eye'}`} aria-hidden="true" />
-                </button>
-              </div>
-              {capsOn && <div className="lg-hint" role="status">Caps Lock is on</div>}
-              {errors.password && <div className="lg-error" id="password-err">{errors.password}</div>}
-            </div>
-
-            <button type="submit" className="lg-btn lg-rise" {...rise(1020)} disabled={loading}>
-              {loading ? (
-                <span className="lg-spinner" aria-label="Signing in..." />
-              ) : (
-                <span className="lg-btn-text">Sign in <i className="ti ti-arrow-right" aria-hidden="true" /></span>
-              )}
-            </button>
-          </form>
-        </div>
+          <button type="submit" className="lg-btn lg-rise" {...rise(890)} disabled={loading}>
+            {loading ? (
+              <span className="lg-spinner" aria-label="Signing in..." />
+            ) : (
+              <span className="lg-btn-text">Sign in</span>
+            )}
+          </button>
+        </form>
       </main>
+
+      <p className="lg-foot" aria-hidden="true">Victorex Portal</p>
     </div>
   );
 }
