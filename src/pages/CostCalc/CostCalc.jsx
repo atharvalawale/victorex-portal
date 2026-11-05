@@ -18,7 +18,8 @@ export default function CostCalc() {
   /* ── Calculator state ── */
   const [product, setProduct]         = useState('');
   const [packSize, setPackSize]       = useState('');
-  const [yieldQuantity, setYieldQuantity] = useState('');
+  const [batchWeightKg, setBatchWeightKg] = useState('');
+  const [densityKgPerL, setDensityKgPerL] = useState('');
   const [unit, setUnit]               = useState('');
   const [items, setItems]             = useState([{ ...EMPTY_ITEM }]);
   const [labourEntries, setLabourEntries] = useState([{ ...EMPTY_LABOUR }]);
@@ -38,7 +39,7 @@ export default function CostCalc() {
     const firstProduct = (ps.data || [])[0]?.product || '';
     if (firstProduct) setProduct(current => current || firstProduct);
     const sizes = (ps.data || []).filter(p => p.product === firstProduct);
-    if (sizes[0]) { setPackSize(sizes[0].size); setYieldQuantity(''); setUnit(sizes[0].unit); }
+    if (sizes[0]) { setPackSize(sizes[0].size); setBatchWeightKg(''); setDensityKgPerL(''); setUnit(sizes[0].unit); }
   }
 
   function showToast(msg) { setToast(msg); setTimeout(() => setToast(''), 3000); }
@@ -49,8 +50,8 @@ export default function CostCalc() {
   function handleProductChange(p) {
     setProduct(p);
     const sizes = getSizesForProduct(p);
-    if (sizes[0]) { setPackSize(sizes[0].size); setYieldQuantity(''); setUnit(sizes[0].unit); }
-    else { setPackSize(''); setYieldQuantity(''); setUnit(''); }
+    if (sizes[0]) { setPackSize(sizes[0].size); setBatchWeightKg(''); setDensityKgPerL(''); setUnit(sizes[0].unit); }
+    else { setPackSize(''); setBatchWeightKg(''); setDensityKgPerL(''); setUnit(''); }
     setSavedFormulaId(null);
     setItems([{ ...EMPTY_ITEM }]);
     setLabourEntries([{ ...EMPTY_LABOUR }]); setOverheadCost('');
@@ -59,14 +60,14 @@ export default function CostCalc() {
   function handleSizeChange(sizeStr) {
     const [size, u] = sizeStr.split('__');
     setPackSize(size); setUnit(u);
-    setYieldQuantity('');
+    setBatchWeightKg(''); setDensityKgPerL('');
     loadFormula(product, size, u);
   }
 
   function loadFormula(p, ps, u) {
     const formula = formulas.find(f => f.product === p && f.pack_size === ps && f.unit === u);
-    const savedYield = Number(formula?.yield_quantity || 0);
-    setYieldQuantity(savedYield > 0 && savedYield !== Number(ps) ? String(savedYield) : '');
+    setBatchWeightKg(formula?.batch_weight_kg ? String(formula.batch_weight_kg) : '');
+    setDensityKgPerL(formula?.density_kg_per_l ? String(formula.density_kg_per_l) : '');
     if (formula) {
       setSavedFormulaId(formula.id);
       setLabourEntries(Array.isArray(formula.labour_entries) && formula.labour_entries.length
@@ -96,17 +97,22 @@ export default function CostCalc() {
   const rawMaterialCost = items.reduce((s, item) => s + (Number(item.qty || 0) * Number(item.rate || 0)), 0);
   const labour          = labourEntries.reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
   const overhead        = Number(overheadCost || 0);
-  const costPerUnit     = Number(yieldQuantity) > 0 ? rawMaterialCost / Number(yieldQuantity) : 0;
+  const yieldQuantity   = Number(batchWeightKg) > 0 && Number(densityKgPerL) > 0
+    ? Number(batchWeightKg) / Number(densityKgPerL)
+    : 0;
+  const costPerUnit     = yieldQuantity > 0 ? rawMaterialCost / yieldQuantity : 0;
 
   /* ── Save formula ── */
   async function handleSaveFormula() {
     if (!packSize) { showToast('Select pack size first'); return; }
-    if (!(Number(yieldQuantity) > 0)) { showToast('Enter the actual quantity produced for this formula'); return; }
+    if (!(Number(batchWeightKg) > 0) || !(Number(densityKgPerL) > 0)) { showToast('Enter finished batch weight and paint density'); return; }
     setSaving(true);
 
     const payload = {
       product, pack_size: packSize, unit,
-      yield_quantity: Number(yieldQuantity),
+      yield_quantity: yieldQuantity,
+      batch_weight_kg: Number(batchWeightKg),
+      density_kg_per_l: Number(densityKgPerL),
       labour_cost: labour,
       labour_entries: labourEntries.filter(entry => entry.name.trim()).map(entry => ({ name: entry.name.trim(), amount: Number(entry.amount || 0) })),
       overhead_cost: overhead,
@@ -116,16 +122,19 @@ export default function CostCalc() {
     let formulaId = savedFormulaId;
 
     if (savedFormulaId) {
-      await supabase.from('cost_formulas').update(payload).eq('id', savedFormulaId);
-      await supabase.from('cost_formula_items').delete().eq('formula_id', savedFormulaId);
+      const { error } = await supabase.from('cost_formulas').update(payload).eq('id', savedFormulaId);
+      if (error) { showToast(`Could not update formula: ${error.message}`); setSaving(false); return; }
+      const { error: deleteError } = await supabase.from('cost_formula_items').delete().eq('formula_id', savedFormulaId);
+      if (deleteError) { showToast(`Could not update materials: ${deleteError.message}`); setSaving(false); return; }
     } else {
-      const { data } = await supabase.from('cost_formulas').insert(payload).select().single();
+      const { data, error } = await supabase.from('cost_formulas').insert(payload).select().single();
+      if (error) { showToast(`Could not save formula: ${error.message}`); setSaving(false); return; }
       formulaId = data?.id;
       setSavedFormulaId(formulaId);
     }
 
     if (formulaId) {
-      await supabase.from('cost_formula_items').insert(
+      const { error } = await supabase.from('cost_formula_items').insert(
         items.filter(i => i.material_name && i.qty && i.rate).map(i => ({
           formula_id:    formulaId,
           material_name: i.material_name,
@@ -135,6 +144,7 @@ export default function CostCalc() {
           amount:        Number(i.qty) * Number(i.rate),
         }))
       );
+      if (error) { showToast(`Formula saved, but materials failed: ${error.message}`); setSaving(false); return; }
     }
 
     showToast('Formula saved ✓');
@@ -183,10 +193,13 @@ export default function CostCalc() {
                     </select>
                   </div>
                 </div>
-                <div className="costcalc-field costcalc-yield-field">
-                  <label>Actual batch quantity produced ({unit || 'unit'})</label>
-                  <input type="number" min="0.01" step="any" value={yieldQuantity} onChange={e => setYieldQuantity(e.target.value)} placeholder="Enter finished quantity, e.g. 820.36" />
-                  <small className="costcalc-yield-help">Pack size ({packSize || '—'} {unit}) is the sale bucket. Enter the full quantity produced for this batch.</small>
+                <div className="costcalc-yield-field">
+                  <div className="costcalc-density-inputs">
+                    <label className="costcalc-field">Finished batch weight (kg)<input type="number" min="0.01" step="any" value={batchWeightKg} onChange={e => setBatchWeightKg(e.target.value)} placeholder="e.g. 820.36" /></label>
+                    <label className="costcalc-field">Paint density (kg per litre)<input type="number" min="0.01" step="0.01" value={densityKgPerL} onChange={e => setDensityKgPerL(e.target.value)} placeholder="e.g. 1.45" /></label>
+                  </div>
+                  <small className="costcalc-yield-help">Litres produced = batch weight ÷ density. Your {packSize || '—'} {unit} pack is only the selling size.</small>
+                  <div className="costcalc-yield-result"><span>Calculated finished volume</span><strong>{yieldQuantity > 0 ? `${yieldQuantity.toLocaleString('en-IN', { maximumFractionDigits: 2 })} L` : 'Enter weight and density'}</strong></div>
                 </div>
                 {savedFormulaId && (
                   <div className="costcalc-saved-note">
@@ -275,7 +288,7 @@ export default function CostCalc() {
                     <span>Raw Material Total</span>
                     <span>{fmtAmt(rawMaterialCost)}</span>
                   </div>
-                  <div className="costcalc-breakdown-row"><span>Actual batch output</span><span>{yieldQuantity ? `${yieldQuantity} ${unit}` : 'Enter quantity'}</span></div>
+                  <div className="costcalc-breakdown-row"><span>Finished batch volume</span><span>{yieldQuantity ? `${yieldQuantity.toLocaleString('en-IN', { maximumFractionDigits: 2 })} L` : 'Enter weight + density'}</span></div>
                   <div className="costcalc-breakdown-row"><span>Labour (separate)</span><span>{fmtAmt(labour)}</span></div>
                   <div className="costcalc-breakdown-row"><span>Other costs (separate)</span><span>{fmtAmt(overhead)}</span></div>
                 </div>
@@ -283,12 +296,12 @@ export default function CostCalc() {
                 <div className="costcalc-final">
                   <div className="costcalc-final-label">Total material production cost</div>
                   <div className="costcalc-final-val">{fmtAmt(rawMaterialCost)}</div>
-                  <div className="costcalc-final-sub">{yieldQuantity ? `for ${yieldQuantity} ${unit} produced` : 'Enter actual batch quantity to calculate unit cost'}</div>
+                  <div className="costcalc-final-sub">{yieldQuantity ? `for ${yieldQuantity.toLocaleString('en-IN', { maximumFractionDigits: 2 })} litres produced` : 'Enter batch weight and density to calculate cost per litre'}</div>
                 </div>
 
                 {Number(yieldQuantity) > 0 && (
                   <div className="costcalc-per-unit">
-                    <div className="costcalc-per-unit-label">Material production cost per 1 {unit}</div>
+                    <div className="costcalc-per-unit-label">Material production cost per 1 litre</div>
                     <div className="costcalc-per-unit-val">{fmtAmt(costPerUnit)}</div>
                   </div>
                 )}
@@ -304,8 +317,8 @@ export default function CostCalc() {
                         onClick={() => {
                           setProduct(f.product);
                     setPackSize(f.pack_size);
-                          const savedYield = Number(f.yield_quantity || 0);
-                          setYieldQuantity(savedYield > 0 && savedYield !== Number(f.pack_size) ? String(savedYield) : '');
+                          setBatchWeightKg(f.batch_weight_kg ? String(f.batch_weight_kg) : '');
+                          setDensityKgPerL(f.density_kg_per_l ? String(f.density_kg_per_l) : '');
                           setUnit(f.unit);
                           setSavedFormulaId(f.id);
                           setLabourEntries(Array.isArray(f.labour_entries) && f.labour_entries.length
@@ -324,9 +337,9 @@ export default function CostCalc() {
                           <div className="costcalc-saved-size">{f.pack_size} {f.unit}</div>
                         </div>
                         <div className="costcalc-saved-price">
-                          {Number(f.yield_quantity) > 0 && Number(f.yield_quantity) !== Number(f.pack_size)
-                            ? `${fmtAmt((f.cost_formula_items || []).reduce((s, i) => s + Number(i.amount || 0), 0) / Number(f.yield_quantity))} / ${f.unit}`
-                            : 'Enter batch yield'}
+                          {Number(f.batch_weight_kg) > 0 && Number(f.density_kg_per_l) > 0
+                            ? `${fmtAmt((f.cost_formula_items || []).reduce((s, i) => s + Number(i.amount || 0), 0) / (Number(f.batch_weight_kg) / Number(f.density_kg_per_l)))} / L`
+                            : 'Enter weight + density'}
                         </div>
                       </div>
                     ))}
